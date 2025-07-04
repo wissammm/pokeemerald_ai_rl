@@ -272,7 +272,7 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
 {
     #ifdef SKIP_TEXT
     gTextFlags.autoScroll = 1;
-    return TRUE;
+
     #endif
     int i;
     u16 j;
@@ -323,12 +323,6 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
 void RunTextPrinters(void)
 {
     int i;
-    #ifdef SKIP_TEXT
-    for (i = 0; i < WINDOWS_MAX; ++i)
-    {
-        sTextPrinters[i].active = FALSE;
-    }
-    #else
     
     if (!gDisableTextPrinters)
     {
@@ -352,7 +346,7 @@ void RunTextPrinters(void)
             }
         }
     }
-    #endif
+
 }
 
 bool16 IsTextPrinterActive(u8 id)

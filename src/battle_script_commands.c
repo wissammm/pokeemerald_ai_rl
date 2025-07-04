@@ -5104,8 +5104,11 @@ static void Cmd_openpartyscreen(void)
         }
         else
         {
+
+           
             #ifdef OBSERVED_DATA
             // Auto-select the first valid Pokémon to switch in
+            DebugPrintf("Cmd_openpartyscreen: OBSERVEDDATA %d\n");
             gActiveBattler = battlerId;
             u8 slot;
             u8 found = FALSE;
@@ -5131,7 +5134,13 @@ static void Cmd_openpartyscreen(void)
                 gBattlescriptCurrInstr = jumpPtr; // jumpPtr is set at the top of Cmd_openpartyscreen
                 return;
             }
+             gActiveBattler = battlerId;
+            *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
+            
+            *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = slot;
+            gBattleStruct->field_93 |= gBitTable[gActiveBattler]; // Mark as handled
             gSpecialStatuses[gActiveBattler].faintedHasReplacement = TRUE;
+            BtlController_EmitChosenMonReturnValue(BUFFER_B,*(gBattleStruct->monToSwitchIntoId + gActiveBattler), gBattleBufferB[gActiveBattler]);
             gBattlescriptCurrInstr += 6;
             
             #else
@@ -5142,9 +5151,8 @@ static void Cmd_openpartyscreen(void)
             DebugPrintf("Cmd_openpartyscreen ");
             BtlController_EmitChoosePokemon(BUFFER_A, hitmarkerFaintBits, *(gBattleStruct->monToSwitchIntoId + BATTLE_PARTNER(gActiveBattler)), ABILITY_NONE, gBattleStruct->battlerPartyOrders[gActiveBattler]);
             MarkBattlerForControllerExec(gActiveBattler);
-
             gBattlescriptCurrInstr += 6;
-
+                
             if (GetBattlerPosition(gActiveBattler) == B_POSITION_PLAYER_LEFT && gBattleResults.playerSwitchesCounter < 255)
                 gBattleResults.playerSwitchesCounter++;
 
@@ -5169,6 +5177,7 @@ static void Cmd_openpartyscreen(void)
                 MarkBattlerForControllerExec(gActiveBattler);
             }
             #endif
+
         }
         
     }
@@ -5185,11 +5194,14 @@ static void Cmd_switchhandleorder(void)
     switch (gBattlescriptCurrInstr[2])
     {
     case 0:
+        DebugPrintf("Case 0\n");
+
         for (i = 0; i < gBattlersCount; i++)
         {
             if (gBattleBufferB[i][0] == CONTROLLER_CHOSENMONRETURNVALUE)
             {
                 *(gBattleStruct->monToSwitchIntoId + i) = gBattleBufferB[i][1];
+                DebugPrintf("Switching in mon %d for battler %d\n", gBattleBufferB[i][1], i);
                 if (!(gBattleStruct->field_93 & gBitTable[i]))
                 {
                     RecordedBattle_SetBattlerAction(i, gBattleBufferB[i][1]);
@@ -5199,20 +5211,26 @@ static void Cmd_switchhandleorder(void)
         }
         break;
     case 1:
+        DebugPrintf("Case 1\n");
+
         if (!(gBattleTypeFlags & BATTLE_TYPE_MULTI))
             SwitchPartyOrder(gActiveBattler);
         break;
     case 2:
+        DebugPrintf("Case 2\n");
+
         if (!(gBattleStruct->field_93 & gBitTable[gActiveBattler]))
         {
+            DebugPrintf("Switching in mon %d for battler %d\n", gBattleBufferB[gActiveBattler][1], gActiveBattler);
             RecordedBattle_SetBattlerAction(gActiveBattler, gBattleBufferB[gActiveBattler][1]);
             gBattleStruct->field_93 |= gBitTable[gActiveBattler];
         }
         // fall through
     case 3:
+        DebugPrintf("Case 3\n");
         gBattleCommunication[0] = gBattleBufferB[gActiveBattler][1];
         *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = gBattleBufferB[gActiveBattler][1];
-
+        DebugPrintf("Switching in mon %d for battler %d\n", gBattleBufferB[gActiveBattler][1], gActiveBattler);
         if (gBattleTypeFlags & BATTLE_TYPE_LINK && gBattleTypeFlags & BATTLE_TYPE_MULTI)
         {
             *(gActiveBattler * 3 + (u8 *)(gBattleStruct->battlerPartyOrders) + 0) &= 0xF;
@@ -10268,11 +10286,13 @@ static void Cmd_removeattackerstatus1(void)
 
 static void Cmd_finishaction(void)
 {
+    DebugPrintf("Cmd_finishaction: gCurrentTurnActionNumber = %d, gBattlersCount = %d\n", gCurrentTurnActionNumber, gBattlersCount);
     gCurrentActionFuncId = B_ACTION_FINISHED;
 }
 
 static void Cmd_finishturn(void)
 {
+    DebugPrintf("Cmd_finishturn: gCurrentTurnActionNumber = %d, gBattlersCount = %d\n", gCurrentTurnActionNumber, gBattlersCount);
     gCurrentActionFuncId = B_ACTION_FINISHED;
     gCurrentTurnActionNumber = gBattlersCount;
 }

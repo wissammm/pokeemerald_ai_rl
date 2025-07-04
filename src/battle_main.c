@@ -4244,96 +4244,96 @@ static void HandleTurnActionSelectionState(void)
     s32 i;
     // DebugPrintf("HandleTurnActionSelectionState\n");
     // PrintPokemonsData();
-    #ifdef OBSERVED_DATA
-        DumpMonData();
+    // #ifdef OBSERVED_DATA
+    //     DumpMonData();
         
-        for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
-        {
-            DumpLegalMoves(gActiveBattler);
+    //     for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
+    //     {
+    //         DumpLegalMoves(gActiveBattler);
 
-            stopHandleTurn = 1;
+    //         stopHandleTurn = 1;
            
-            if (gBattleMons[gActiveBattler].hp == 0)
-            {
-               DebugPrintf("Battler %d is fainted, skipping action selection.\n", gActiveBattler);
-                if ( gBattlerPartyIndexes[gActiveBattler] != 0)
-                {
-                    gChosenActionByBattler[gActiveBattler] = B_ACTION_SWITCH;
-                    *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = 0;
-                    *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
-                    gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
-                    continue;
-                }
-            }
+    //         // if (gBattleMons[gActiveBattler].hp == 0)
+    //         // {
+    //         //    DebugPrintf("Battler %d is fainted, skipping action selection.\n", gActiveBattler);
+    //         //     if ( gBattlerPartyIndexes[gActiveBattler] != 0)
+    //         //     {
+    //         //         gChosenActionByBattler[gActiveBattler] = B_ACTION_SWITCH;
+    //         //         *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = 0;
+    //         //         *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
+    //         //         gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
+    //         //         continue;
+    //         //     }
+    //         // }
           
-            else if (actionDone < 4){
-                if (AreAllMovesUnusable())
-                {
-                    gBattleCommunication[gActiveBattler] = STATE_SELECTION_SCRIPT;
-                    *(gBattleStruct->selectionScriptFinished + gActiveBattler) = FALSE;
-                    *(gBattleStruct->stateIdAfterSelScript + gActiveBattler) = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
-                    *(gBattleStruct->moveTarget + gActiveBattler) = gBattleBufferB[gActiveBattler][3];
-                    continue;
-                }
-                else if (gDisableStructs[gActiveBattler].encoredMove != 0)
-                {
-                    gChosenMoveByBattler[gActiveBattler] = gDisableStructs[gActiveBattler].encoredMove;
-                    *(gBattleStruct->chosenMovePositions + gActiveBattler) = gDisableStructs[gActiveBattler].encoredMovePos;
-                    gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
-                    continue;
-                }
-                else
-                {
-                    gChosenActionByBattler[gActiveBattler] = B_ACTION_USE_MOVE;
-                    // Set the chosen move position
-                    *(gBattleStruct->chosenMovePositions + gActiveBattler) = actionDone;
-                    // Set the actual move (move ID)
-                    gChosenMoveByBattler[gActiveBattler] = gBattleMons[gActiveBattler].moves[actionDone];
-                    // Optionally set the target (for single battles, usually 0 or 1)
-                    *(gBattleStruct->moveTarget + gActiveBattler) = 0;
-                    // gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
-                    continue;
+    //         if (actionDone < 4){
+    //             if (AreAllMovesUnusable())
+    //             {
+    //                 gBattleCommunication[gActiveBattler] = STATE_SELECTION_SCRIPT;
+    //                 *(gBattleStruct->selectionScriptFinished + gActiveBattler) = FALSE;
+    //                 *(gBattleStruct->stateIdAfterSelScript + gActiveBattler) = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
+    //                 *(gBattleStruct->moveTarget + gActiveBattler) = gBattleBufferB[gActiveBattler][3];
+    //                 continue;
+    //             }
+    //             else if (gDisableStructs[gActiveBattler].encoredMove != 0)
+    //             {
+    //                 gChosenMoveByBattler[gActiveBattler] = gDisableStructs[gActiveBattler].encoredMove;
+    //                 *(gBattleStruct->chosenMovePositions + gActiveBattler) = gDisableStructs[gActiveBattler].encoredMovePos;
+    //                 gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
+    //                 continue;
+    //             }
+    //             else
+    //             {
+    //                 gChosenActionByBattler[gActiveBattler] = B_ACTION_USE_MOVE;
+    //                 // Set the chosen move position
+    //                 *(gBattleStruct->chosenMovePositions + gActiveBattler) = actionDone;
+    //                 // Set the actual move (move ID)
+    //                 gChosenMoveByBattler[gActiveBattler] = gBattleMons[gActiveBattler].moves[actionDone];
+    //                 // Optionally set the target (for single battles, usually 0 or 1)
+    //                 *(gBattleStruct->moveTarget + gActiveBattler) = 0;
+    //                 // gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
+    //                 continue;
 
-                }
-                break;
-            }
-            else{
-                *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
-                if (gBattleMons[gActiveBattler].status2 & (STATUS2_WRAPPED | STATUS2_ESCAPE_PREVENTION)
-                    || gBattleTypeFlags & BATTLE_TYPE_ARENA
-                    || gStatuses3[gActiveBattler] & STATUS3_ROOTED)
-                {
-                    DebugPrintf("Battler %d cannot switch due to being wrapped or rooted.\n", gActiveBattler);
-                    BtlController_EmitChoosePokemon(BUFFER_A, PARTY_ACTION_CANT_SWITCH, PARTY_SIZE, ABILITY_NONE, gBattleStruct->battlerPartyOrders[gActiveBattler]);
-                }
-                else if ((i = ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_SHADOW_TAG))
-                        || ((i = ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_ARENA_TRAP))
-                            && !IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_FLYING)
-                            && gBattleMons[gActiveBattler].ability != ABILITY_LEVITATE)
-                        || ((i = AbilityBattleEffects(ABILITYEFFECT_CHECK_FIELD_EXCEPT_BATTLER, gActiveBattler, ABILITY_MAGNET_PULL, 0, 0))
-                            && IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_STEEL)))
-                {
-                    DebugPrintf("Battler %d cannot switch \n", gActiveBattler);
-                    BtlController_EmitChoosePokemon(BUFFER_A, ((i - 1) << 4) | PARTY_ACTION_ABILITY_PREVENTS, PARTY_SIZE, gLastUsedAbility, gBattleStruct->battlerPartyOrders[gActiveBattler]);
-                }
-                else
-                {
-                     gChosenActionByBattler[gActiveBattler] = B_ACTION_SWITCH;
-                    *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = actionDone - 4;
-                    *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
-                    gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
-                    continue;
-                }
-            }
-            stopHandleTurn = 0;
+    //             }
+    //             break;
+    //         }
+    //         else{
+    //             *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
+    //             if (gBattleMons[gActiveBattler].status2 & (STATUS2_WRAPPED | STATUS2_ESCAPE_PREVENTION)
+    //                 || gBattleTypeFlags & BATTLE_TYPE_ARENA
+    //                 || gStatuses3[gActiveBattler] & STATUS3_ROOTED)
+    //             {
+    //                 DebugPrintf("Battler %d cannot switch due to being wrapped or rooted.\n", gActiveBattler);
+    //                 BtlController_EmitChoosePokemon(BUFFER_A, PARTY_ACTION_CANT_SWITCH, PARTY_SIZE, ABILITY_NONE, gBattleStruct->battlerPartyOrders[gActiveBattler]);
+    //             }
+    //             else if ((i = ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_SHADOW_TAG))
+    //                     || ((i = ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_ARENA_TRAP))
+    //                         && !IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_FLYING)
+    //                         && gBattleMons[gActiveBattler].ability != ABILITY_LEVITATE)
+    //                     || ((i = AbilityBattleEffects(ABILITYEFFECT_CHECK_FIELD_EXCEPT_BATTLER, gActiveBattler, ABILITY_MAGNET_PULL, 0, 0))
+    //                         && IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_STEEL)))
+    //             {
+    //                 DebugPrintf("Battler %d cannot switch \n", gActiveBattler);
+    //                 BtlController_EmitChoosePokemon(BUFFER_A, ((i - 1) << 4) | PARTY_ACTION_ABILITY_PREVENTS, PARTY_SIZE, gLastUsedAbility, gBattleStruct->battlerPartyOrders[gActiveBattler]);
+    //             }
+    //             else
+    //             {
+    //                  gChosenActionByBattler[gActiveBattler] = B_ACTION_SWITCH;
+    //                 *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = actionDone - 4;
+    //                 *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
+    //                 gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
+    //                 continue;
+    //             }
+    //         }
+    //         stopHandleTurn = 0;
 
             
-        }
-        gBattleMainFunc = SetActionsAndBattlersTurnOrder;
+    //     }
+    //     gBattleMainFunc = SetActionsAndBattlersTurnOrder;
 
         
         
-    #else
+    // #else
     
    
     gBattleCommunication[ACTIONS_CONFIRMED_COUNT] = 0;
@@ -4422,8 +4422,51 @@ static void HandleTurnActionSelectionState(void)
                                                             i);
                         }
 
+                        
+                        #ifdef OBSERVED_DATA
+
+                       
+                        
+                        u16 move = gBattleMons[gActiveBattler].moves[actionDone];
+                        u8 moveTarget;
+                        u8 targetBattler;
+
+                        // Special case for Curse
+                        if (move == MOVE_CURSE)
+                        {
+                            if (gBattleMons[gActiveBattler].type1 != TYPE_GHOST && gBattleMons[gActiveBattler].type2 != TYPE_GHOST)
+                                targetBattler = gActiveBattler;
+                            else
+                                targetBattler = GetBattlerAtPosition(BATTLE_OPPOSITE(GET_BATTLER_SIDE(gActiveBattler)));
+                        }
+                        else
+                        {
+                            u8 targetFlag = gBattleMoves[move].target;
+                            if (targetFlag & (MOVE_TARGET_USER | MOVE_TARGET_USER_OR_SELECTED))
+                                targetBattler = gActiveBattler;
+                            else
+                                targetBattler = GetBattlerAtPosition(BATTLE_OPPOSITE(GET_BATTLER_SIDE(gActiveBattler)));
+                        }
+                        DebugPrintf("gActiveBattler: %d, moves: %d, gMultiUsePlayerCursor: %d\n", gActiveBattler, moveInfo.moves[gMoveSelectionCursor[gActiveBattler]], targetBattler);
+                        *(gBattleStruct->chosenMovePositions + gActiveBattler) = actionDone;
+                        gChosenMoveByBattler[gActiveBattler] = gBattleMons[gActiveBattler].moves[actionDone];
+                         *(gBattleStruct->moveTarget + gActiveBattler) = targetBattler;
+                        gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
+                        return;
+
+                        // move that i can both choose for opponent and battler
+                        // if (!gBattleBufferA[gActiveBattler][1]) // not a double battle
+                        // {
+                        //     if (moveTarget & MOVE_TARGET_USER_OR_SELECTED && !gBattleBufferA[gActiveBattler][2])
+                        //         canSelectTarget++;
+                        // }
+                        // }
+                        #else
                         BtlController_EmitChooseMove(BUFFER_A, (gBattleTypeFlags & BATTLE_TYPE_DOUBLE) != 0, FALSE, &moveInfo);
                         MarkBattlerForControllerExec(gActiveBattler);
+
+                        #endif // OBSERVED_DATA
+                        
                     }
                     break;
                 case B_ACTION_USE_ITEM:
@@ -4603,10 +4646,39 @@ static void HandleTurnActionSelectionState(void)
                                 RecordedBattle_SetBattlerAction(gActiveBattler, gBattleBufferB[gActiveBattler][2]);
                                 RecordedBattle_SetBattlerAction(gActiveBattler, gBattleBufferB[gActiveBattler][3]);
                             }
+                            DebugPrintf("B_ACTION_USEMOVE gActiveBattler: %d, actionDone: %d\n", gActiveBattler, actionDone);
+                            // #ifdef OBSERVED_DATA
+                            // u8 moveTarget;
+                            // struct ChooseMoveStruct moveInfo;
+                            // gMoveSelectionCursor[gActiveBattler] = gBattleMons[gActiveBattler].moves[actionDone];
+                            // if (moveInfo.moves[gMoveSelectionCursor[gActiveBattler]] == MOVE_CURSE)
+                            // {
+                            //     if (moveInfo.monType1 != TYPE_GHOST && moveInfo.monType2 != TYPE_GHOST)
+                            //         moveTarget = MOVE_TARGET_USER;
+                            //     else
+                            //         moveTarget = MOVE_TARGET_SELECTED;
+                            // }
+                            // else
+                            // {
+                            //     moveTarget = gBattleMoves[moveInfo.moves[gMoveSelectionCursor[gActiveBattler]]].target;
+                            // }
+
+                            // if (moveTarget & MOVE_TARGET_USER)
+                            //     gMultiUsePlayerCursor = gActiveBattler;
+                            // else
+                            //     gMultiUsePlayerCursor = GetBattlerAtPosition(BATTLE_OPPOSITE(GET_BATTLER_SIDE(gActiveBattler)));
+                            
+                            // *(gBattleStruct->chosenMovePositions + gActiveBattler) = actionDone;
+                            // gChosenMoveByBattler[gActiveBattler] = gBattleMons[gActiveBattler].moves[actionDone];
+                            // *(gBattleStruct->moveTarget + gActiveBattler) = gBattleBufferB[gActiveBattler][3];
+                            // gBattleCommunication[gActiveBattler]++;
+                            // #else
                             *(gBattleStruct->chosenMovePositions + gActiveBattler) = gBattleBufferB[gActiveBattler][2];
                             gChosenMoveByBattler[gActiveBattler] = gBattleMons[gActiveBattler].moves[*(gBattleStruct->chosenMovePositions + gActiveBattler)];
                             *(gBattleStruct->moveTarget + gActiveBattler) = gBattleBufferB[gActiveBattler][3];
                             gBattleCommunication[gActiveBattler]++;
+                            // #endif
+                            
                         }
                         break;
                     }
@@ -4761,7 +4833,7 @@ static void HandleTurnActionSelectionState(void)
             }
         }
     }
-    #endif
+    // #endif
 }
 
 static bool8 AllAtActionConfirmed(void)
