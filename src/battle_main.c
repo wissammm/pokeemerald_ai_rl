@@ -265,7 +265,7 @@ EWRAM_DATA u8 gBattleMonForms[MAX_BATTLERS_COUNT] = {0};
     
     // Wait Value
     DUMP_DATA u16 volatile stopHandleTurn = 0;
-    DUMP_DATA u16 volatile actionDone = 3;
+    DUMP_DATA u16 volatile actionDone = 5;
 
 #endif
 
@@ -4223,7 +4223,10 @@ void DumpLegalMoves(int gActiveBattler){
             legalSwitchActions[i] = FALSE; 
             continue;
         }
-
+        //TODO
+        // If an opponent has Shadow Tag, you can't switch out
+        // If an opponent has Arena Trap, you can't switch out unless you're Flying-type or have Levitate
+        // If an opponent has Magnet Pull, you can't switch out if you're Steel-type
         if (gBattleMons[gActiveBattler].status2 & (STATUS2_WRAPPED | STATUS2_ESCAPE_PREVENTION)
             || gBattleTypeFlags & BATTLE_TYPE_ARENA
             || gStatuses3[gActiveBattler] & STATUS3_ROOTED)
@@ -4516,10 +4519,21 @@ static void HandleTurnActionSelectionState(void)
                             BtlController_EmitChoosePokemon(BUFFER_A, PARTY_ACTION_CHOOSE_MON, *(gBattleStruct->monToSwitchIntoId + 0), ABILITY_NONE, gBattleStruct->battlerPartyOrders[gActiveBattler]);
                         else if (gActiveBattler == 3 && gChosenActionByBattler[1] == B_ACTION_SWITCH)
                             BtlController_EmitChoosePokemon(BUFFER_A, PARTY_ACTION_CHOOSE_MON, *(gBattleStruct->monToSwitchIntoId + 1), ABILITY_NONE, gBattleStruct->battlerPartyOrders[gActiveBattler]);
-                        else
+                        else{
+                            #ifdef OBSERVED_DATA
+                            gChosenActionByBattler[gActiveBattler] = B_ACTION_SWITCH;
+                            *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = 1;
+                            *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
+                            gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
+                            #else
                             BtlController_EmitChoosePokemon(BUFFER_A, PARTY_ACTION_CHOOSE_MON, PARTY_SIZE, ABILITY_NONE, gBattleStruct->battlerPartyOrders[gActiveBattler]);
+                            #endif
+                        }
+                           
                     }
+                    #ifndef OBSERVED_DATA
                     MarkBattlerForControllerExec(gActiveBattler);
+                    #endif
                     break;
                 case B_ACTION_SAFARI_BALL:
                     if (IsPlayerPartyAndPokemonStorageFull())
@@ -4651,38 +4665,10 @@ static void HandleTurnActionSelectionState(void)
                                 RecordedBattle_SetBattlerAction(gActiveBattler, gBattleBufferB[gActiveBattler][2]);
                                 RecordedBattle_SetBattlerAction(gActiveBattler, gBattleBufferB[gActiveBattler][3]);
                             }
-                            DebugPrintf("B_ACTION_USEMOVE gActiveBattler: %d, actionDone: %d\n", gActiveBattler, actionDone);
-                            // #ifdef OBSERVED_DATA
-                            // u8 moveTarget;
-                            // struct ChooseMoveStruct moveInfo;
-                            // gMoveSelectionCursor[gActiveBattler] = gBattleMons[gActiveBattler].moves[actionDone];
-                            // if (moveInfo.moves[gMoveSelectionCursor[gActiveBattler]] == MOVE_CURSE)
-                            // {
-                            //     if (moveInfo.monType1 != TYPE_GHOST && moveInfo.monType2 != TYPE_GHOST)
-                            //         moveTarget = MOVE_TARGET_USER;
-                            //     else
-                            //         moveTarget = MOVE_TARGET_SELECTED;
-                            // }
-                            // else
-                            // {
-                            //     moveTarget = gBattleMoves[moveInfo.moves[gMoveSelectionCursor[gActiveBattler]]].target;
-                            // }
-
-                            // if (moveTarget & MOVE_TARGET_USER)
-                            //     gMultiUsePlayerCursor = gActiveBattler;
-                            // else
-                            //     gMultiUsePlayerCursor = GetBattlerAtPosition(BATTLE_OPPOSITE(GET_BATTLER_SIDE(gActiveBattler)));
-                            
-                            // *(gBattleStruct->chosenMovePositions + gActiveBattler) = actionDone;
-                            // gChosenMoveByBattler[gActiveBattler] = gBattleMons[gActiveBattler].moves[actionDone];
-                            // *(gBattleStruct->moveTarget + gActiveBattler) = gBattleBufferB[gActiveBattler][3];
-                            // gBattleCommunication[gActiveBattler]++;
-                            // #else
                             *(gBattleStruct->chosenMovePositions + gActiveBattler) = gBattleBufferB[gActiveBattler][2];
                             gChosenMoveByBattler[gActiveBattler] = gBattleMons[gActiveBattler].moves[*(gBattleStruct->chosenMovePositions + gActiveBattler)];
                             *(gBattleStruct->moveTarget + gActiveBattler) = gBattleBufferB[gActiveBattler][3];
                             gBattleCommunication[gActiveBattler]++;
-                            // #endif
                             
                         }
                         break;
@@ -4831,17 +4817,22 @@ static void HandleTurnActionSelectionState(void)
         }
     }
 
-    //PreStateMachine
+    #ifdef OBSERVED_DATA
+    //PostStateMachine
     for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
     {
+        actionDone = 5;
         if (gBattleCommunication[gActiveBattler] == STATE_BEFORE_ACTION_CHOSEN)
         {
-            if(gActiveBattler == 0){
-                gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CHOSEN;
-                gBattleBufferB[gActiveBattler][1]= (actionDone < 4) ? B_ACTION_USE_MOVE : B_ACTION_SWITCH;
-            }
+            
+            gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CHOSEN;
+            gBattleBufferB[gActiveBattler][1] = (actionDone < 4) ? B_ACTION_USE_MOVE : B_ACTION_SWITCH;
+            DebugPrintf("Action done = %d, gBattleBufferB[gActiveBattler][1] =  %d",actionDone,gBattleBufferB[gActiveBattler][1]);
+            
         }
     }
+    #endif // OBSERVED_DATA
+
     // Check if everyone chose actions.
     if (gBattleCommunication[ACTIONS_CONFIRMED_COUNT] == gBattlersCount)
     {
