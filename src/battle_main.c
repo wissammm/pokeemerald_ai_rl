@@ -258,14 +258,19 @@ EWRAM_DATA u8 gBattleMonForms[MAX_BATTLERS_COUNT] = {0};
     
     // Data to retrives
     #define MON_DATA_U32_SIZE 36
+
     DUMP_DATA u32 monDataPlayer[MON_DATA_U32_SIZE*PARTY_SIZE];
     DUMP_DATA u32 monDataEnemy[MON_DATA_U32_SIZE*PARTY_SIZE];
-    DUMP_DATA u16 legalMoveActions[4];
-    DUMP_DATA u16 legalSwitchActions[PARTY_SIZE];
+
+    DUMP_DATA u16 legalMoveActionsPlayer[MAX_MON_MOVES];
+    DUMP_DATA u16 legalMoveActionsEnemy[MAX_MON_MOVES];
+
+    DUMP_DATA u16 legalSwitchActionsPlayer[PARTY_SIZE];
+    DUMP_DATA u16 legalSwitchActionsEnemy[PARTY_SIZE];
     
     // Wait Value
     DUMP_DATA u16 volatile stopHandleTurn = 0;
-    DUMP_DATA u16 volatile actionDone = 5;
+    DUMP_DATA u16 actionDone = 5;
 
 #endif
 
@@ -4182,62 +4187,86 @@ void DumpMonData(){
     }
 }
 
-void DumpLegalMoves(int gActiveBattler){
+void DumpLegalMoves(int gActiveBattler, u32 *dst){
     s32 i;
 
-    u8 numLegalMoves = 0;
+    u8 unusableMoves = CheckMoveLimitations(gActiveBattler, 0, 0xFF);
+    
+    DebugPrintf("Unusable moves bitfield: %x\n", unusableMoves);
 
-    for (i = 0; i < MAX_MON_MOVES; i++)
-    {
+    for (i = 0; i < MAX_MON_MOVES; i++) {
         u16 move = gBattleMons[gActiveBattler].moves[i];
-        u8 pp = gBattleMons[gActiveBattler].pp[i];
-
-        if (move != MOVE_NONE && pp > 0)
-        {
-            legalMoveActions[i] = TRUE;
+        
+        if (move != MOVE_NONE && gBattleMons[gActiveBattler].pp[i] > 0) {
+            if (unusableMoves & gBitTable[i]) {
+                DebugPrintf("Move %d unusable due to limitations\n", move);
+                dst[i] = FALSE;
+            }
+            else {
+                DebugPrintf("Move %d is legal\n", move);
+                dst[i] = TRUE;
+            }
         }
-        else
-        {
-            legalMoveActions[i] = FALSE;
+        else {
+            DebugPrintf("Move %d illegal (no PP or doesn't exist)\n", move);
+            dst[i] = FALSE;
         }
     }
+}
+void DumpLegalSwitch(int gActiveBattler,u32 *dst){
+    s32 i;
+    s32 abilityCheck;
 
-    u8 numLegalSwitches = 0;
+    *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
+
+    // global switch prevention conditions
+    bool8 preventSwitch = FALSE;
+    if (gBattleMons[gActiveBattler].status2 & (STATUS2_WRAPPED | STATUS2_ESCAPE_PREVENTION)
+        || gBattleTypeFlags & BATTLE_TYPE_ARENA
+        || gStatuses3[gActiveBattler] & STATUS3_ROOTED)
+    {
+        for (i = 0; i < PARTY_SIZE; i++)
+            legalSwitchActions[i] = FALSE;
+        return;
+    }
+
+    // ability-based switch prevention
+    if ((abilityCheck = ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_SHADOW_TAG))
+        || ((abilityCheck = ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_ARENA_TRAP))
+            && !IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_FLYING)
+            && gBattleMons[gActiveBattler].ability != ABILITY_LEVITATE)
+        || ((abilityCheck = AbilityBattleEffects(ABILITYEFFECT_CHECK_FIELD_EXCEPT_BATTLER, gActiveBattler, ABILITY_MAGNET_PULL, 0, 0))
+            && IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_STEEL)))
+    {
+        for (i = 0; i < PARTY_SIZE; i++)
+            legalSwitchActions[i] = FALSE;
+        return;
+    }
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
+        // can't switch to self
         if (i == gBattlerPartyIndexes[gActiveBattler])
         {
-            legalSwitchActions[i] = FALSE; 
+            legalSwitchActions[i] = FALSE;
             continue;
         }
 
         if (GetMonData(&gPlayerParty[i], MON_DATA_HP) == 0)
         {
-            legalSwitchActions[i] = FALSE; 
+            legalSwitchActions[i] = FALSE;
             continue;
         }
 
         if (GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
         {
-            legalSwitchActions[i] = FALSE; 
+            legalSwitchActions[i] = FALSE;
             continue;
         }
-        //TODO
-        // If an opponent has Shadow Tag, you can't switch out
-        // If an opponent has Arena Trap, you can't switch out unless you're Flying-type or have Levitate
-        // If an opponent has Magnet Pull, you can't switch out if you're Steel-type
-        if (gBattleMons[gActiveBattler].status2 & (STATUS2_WRAPPED | STATUS2_ESCAPE_PREVENTION)
-            || gBattleTypeFlags & BATTLE_TYPE_ARENA
-            || gStatuses3[gActiveBattler] & STATUS3_ROOTED)
-            {
-                legalSwitchActions[i] = FALSE; 
-                continue;
-            }
-            
 
-        legalSwitchActions[i] = TRUE; 
+        legalSwitchActions[i] = TRUE;
     }
+
 }
 #endif // OBSERVED_DATA
 
@@ -4245,99 +4274,6 @@ void DumpLegalMoves(int gActiveBattler){
 static void HandleTurnActionSelectionState(void)
 {
     s32 i;
-    // DebugPrintf("HandleTurnActionSelectionState\n");
-    // PrintPokemonsData();
-    // #ifdef OBSERVED_DATA
-    //     DumpMonData();
-        
-    //     for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
-    //     {
-    //         DumpLegalMoves(gActiveBattler);
-
-    //         stopHandleTurn = 1;
-           
-    //         // if (gBattleMons[gActiveBattler].hp == 0)
-    //         // {
-    //         //    DebugPrintf("Battler %d is fainted, skipping action selection.\n", gActiveBattler);
-    //         //     if ( gBattlerPartyIndexes[gActiveBattler] != 0)
-    //         //     {
-    //         //         gChosenActionByBattler[gActiveBattler] = B_ACTION_SWITCH;
-    //         //         *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = 0;
-    //         //         *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
-    //         //         gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
-    //         //         continue;
-    //         //     }
-    //         // }
-          
-    //         if (actionDone < 4){
-    //             if (AreAllMovesUnusable())
-    //             {
-    //                 gBattleCommunication[gActiveBattler] = STATE_SELECTION_SCRIPT;
-    //                 *(gBattleStruct->selectionScriptFinished + gActiveBattler) = FALSE;
-    //                 *(gBattleStruct->stateIdAfterSelScript + gActiveBattler) = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
-    //                 *(gBattleStruct->moveTarget + gActiveBattler) = gBattleBufferB[gActiveBattler][3];
-    //                 continue;
-    //             }
-    //             else if (gDisableStructs[gActiveBattler].encoredMove != 0)
-    //             {
-    //                 gChosenMoveByBattler[gActiveBattler] = gDisableStructs[gActiveBattler].encoredMove;
-    //                 *(gBattleStruct->chosenMovePositions + gActiveBattler) = gDisableStructs[gActiveBattler].encoredMovePos;
-    //                 gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
-    //                 continue;
-    //             }
-    //             else
-    //             {
-    //                 gChosenActionByBattler[gActiveBattler] = B_ACTION_USE_MOVE;
-    //                 // Set the chosen move position
-    //                 *(gBattleStruct->chosenMovePositions + gActiveBattler) = actionDone;
-    //                 // Set the actual move (move ID)
-    //                 gChosenMoveByBattler[gActiveBattler] = gBattleMons[gActiveBattler].moves[actionDone];
-    //                 // Optionally set the target (for single battles, usually 0 or 1)
-    //                 *(gBattleStruct->moveTarget + gActiveBattler) = 0;
-    //                 // gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
-    //                 continue;
-
-    //             }
-    //             break;
-    //         }
-    //         else{
-    //             *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
-    //             if (gBattleMons[gActiveBattler].status2 & (STATUS2_WRAPPED | STATUS2_ESCAPE_PREVENTION)
-    //                 || gBattleTypeFlags & BATTLE_TYPE_ARENA
-    //                 || gStatuses3[gActiveBattler] & STATUS3_ROOTED)
-    //             {
-    //                 DebugPrintf("Battler %d cannot switch due to being wrapped or rooted.\n", gActiveBattler);
-    //                 BtlController_EmitChoosePokemon(BUFFER_A, PARTY_ACTION_CANT_SWITCH, PARTY_SIZE, ABILITY_NONE, gBattleStruct->battlerPartyOrders[gActiveBattler]);
-    //             }
-    //             else if ((i = ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_SHADOW_TAG))
-    //                     || ((i = ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_ARENA_TRAP))
-    //                         && !IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_FLYING)
-    //                         && gBattleMons[gActiveBattler].ability != ABILITY_LEVITATE)
-    //                     || ((i = AbilityBattleEffects(ABILITYEFFECT_CHECK_FIELD_EXCEPT_BATTLER, gActiveBattler, ABILITY_MAGNET_PULL, 0, 0))
-    //                         && IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_STEEL)))
-    //             {
-    //                 DebugPrintf("Battler %d cannot switch \n", gActiveBattler);
-    //                 BtlController_EmitChoosePokemon(BUFFER_A, ((i - 1) << 4) | PARTY_ACTION_ABILITY_PREVENTS, PARTY_SIZE, gLastUsedAbility, gBattleStruct->battlerPartyOrders[gActiveBattler]);
-    //             }
-    //             else
-    //             {
-    //                  gChosenActionByBattler[gActiveBattler] = B_ACTION_SWITCH;
-    //                 *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = actionDone - 4;
-    //                 *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
-    //                 gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
-    //                 continue;
-    //             }
-    //         }
-    //         stopHandleTurn = 0;
-
-            
-    //     }
-    //     gBattleMainFunc = SetActionsAndBattlersTurnOrder;
-
-        
-        
-    // #else
-    
    
     gBattleCommunication[ACTIONS_CONFIRMED_COUNT] = 0;
     
@@ -4345,7 +4281,7 @@ static void HandleTurnActionSelectionState(void)
     for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
     {
             // DebugPrintf("gActive Battler %d is in %d state",gActiveBattler,gBattleCommunication[gActiveBattler] );
-        
+        DumpLegalMoves(gActiveBattler);
         u8 position = GetBattlerPosition(gActiveBattler);
         switch (gBattleCommunication[gActiveBattler])
         {
