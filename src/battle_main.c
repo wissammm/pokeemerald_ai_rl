@@ -258,6 +258,7 @@ EWRAM_DATA u8 gBattleMonForms[MAX_BATTLERS_COUNT] = {0};
     
     // Data to retrives
     #define MON_DATA_U32_SIZE 36
+    #define STATUS2_OFFSET 30 
 
     DUMP_DATA u32 monDataPlayer[MON_DATA_U32_SIZE*PARTY_SIZE];
     DUMP_DATA u32 monDataEnemy[MON_DATA_U32_SIZE*PARTY_SIZE];
@@ -1922,6 +1923,7 @@ static void CB2_HandleStartMultiBattle(void)
 
 void BattleMainCB2(void)
 {
+    
     AnimateSprites();
     BuildOamBuffer();
     RunTextPrinters();
@@ -3097,6 +3099,8 @@ static void BattleStartClearSetData(void)
     u32 j;
     u8 *dataPtr;
 
+    gHitMarker |= HITMARKER_NO_ANIMATIONS; 
+
     TurnValuesCleanUp(FALSE);
     SpecialStatusesClear();
 
@@ -4166,28 +4170,24 @@ void DumpMonData(){
     for (i = 0; i < PARTY_SIZE; i++)
     {
         DumpPartyMonData(&gPlayerParty[i], monDataPlayer + i * MON_DATA_U32_SIZE);
-        // use a for but can be replaced by 1 or 2 bc our case is only for 1v1 
-        for (int b = 0; b < gBattlersCount; b++)
-        {
-            if (GetBattlerSide(b) == B_SIDE_PLAYER && gBattlerPartyIndexes[b] == i)
-                monDataPlayer[i * MON_DATA_U32_SIZE + 30] = gBattleMons[b].status2;
-                monDataPlayer[i * MON_DATA_U32_SIZE] = TRUE;
-
+        if (gBattlerPartyIndexes[0] == i) {
+            monDataPlayer[i * MON_DATA_U32_SIZE + STATUS2_OFFSET] = gBattleMons[0].status2;
+            monDataPlayer[i * MON_DATA_U32_SIZE] = TRUE;
         }
     }
     for (i = 0; i < PARTY_SIZE; i++)
     {
         DumpPartyMonData(&gEnemyParty[i], monDataEnemy + i * MON_DATA_U32_SIZE);
-        for (int b = 0; b < gBattlersCount; b++)
-        {
-            if (GetBattlerSide(b) == B_SIDE_OPPONENT && gBattlerPartyIndexes[b] == i)
-                monDataEnemy[i * MON_DATA_U32_SIZE + 30] = gBattleMons[b].status2;
-                monDataEnemy[i * MON_DATA_U32_SIZE] = TRUE;
+        
+        if ( gBattlerPartyIndexes[0] == i){
+            monDataEnemy[i * MON_DATA_U32_SIZE + STATUS2_OFFSET] = gBattleMons[1].status2;
+            monDataEnemy[i * MON_DATA_U32_SIZE] = TRUE;
         }
+    
     }
 }
 
-void DumpLegalMoves(int gActiveBattler, u32 *dst){
+void DumpLegalMoves(int gActiveBattler, u16 *dst){
     s32 i;
 
     u8 unusableMoves = CheckMoveLimitations(gActiveBattler, 0, 0xFF);
@@ -4213,7 +4213,7 @@ void DumpLegalMoves(int gActiveBattler, u32 *dst){
         }
     }
 }
-void DumpLegalSwitch(int gActiveBattler,u32 *dst){
+void DumpLegalSwitch(int gActiveBattler,u16 *dst){
     s32 i;
     s32 abilityCheck;
 
@@ -4226,7 +4226,7 @@ void DumpLegalSwitch(int gActiveBattler,u32 *dst){
         || gStatuses3[gActiveBattler] & STATUS3_ROOTED)
     {
         for (i = 0; i < PARTY_SIZE; i++)
-            legalSwitchActions[i] = FALSE;
+            dst[i] = FALSE;
         return;
     }
 
@@ -4239,7 +4239,7 @@ void DumpLegalSwitch(int gActiveBattler,u32 *dst){
             && IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_STEEL)))
     {
         for (i = 0; i < PARTY_SIZE; i++)
-            legalSwitchActions[i] = FALSE;
+            dst[i] = FALSE;
         return;
     }
 
@@ -4248,23 +4248,23 @@ void DumpLegalSwitch(int gActiveBattler,u32 *dst){
         // can't switch to self
         if (i == gBattlerPartyIndexes[gActiveBattler])
         {
-            legalSwitchActions[i] = FALSE;
+            dst[i] = FALSE;
             continue;
         }
 
         if (GetMonData(&gPlayerParty[i], MON_DATA_HP) == 0)
         {
-            legalSwitchActions[i] = FALSE;
+            dst[i] = FALSE;
             continue;
         }
 
         if (GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
         {
-            legalSwitchActions[i] = FALSE;
+            dst[i] = FALSE;
             continue;
         }
 
-        legalSwitchActions[i] = TRUE;
+        dst[i] = TRUE;
     }
 
 }
@@ -4276,12 +4276,14 @@ static void HandleTurnActionSelectionState(void)
     s32 i;
    
     gBattleCommunication[ACTIONS_CONFIRMED_COUNT] = 0;
-    
-
+    DumpLegalMoves(0,legalMoveActionsPlayer);
+    DumpLegalMoves(1,legalMoveActionsEnemy);
+    DumpMonData();
+    stopHandleTurn = 1;
     for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
     {
             // DebugPrintf("gActive Battler %d is in %d state",gActiveBattler,gBattleCommunication[gActiveBattler] );
-        DumpLegalMoves(gActiveBattler);
+        
         u8 position = GetBattlerPosition(gActiveBattler);
         switch (gBattleCommunication[gActiveBattler])
         {
