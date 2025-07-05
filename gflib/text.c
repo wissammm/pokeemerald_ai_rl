@@ -272,7 +272,7 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
 {
     #ifdef SKIP_TEXT
     gTextFlags.autoScroll = 1;
-
+    return TRUE;
     #endif
     int i;
     u16 j;

@@ -251,6 +251,12 @@ EWRAM_DATA u8 gBattleMonForms[MAX_BATTLERS_COUNT] = {0};
 #warning "SKIP_TEXT is NOT enabled"
 #endif
 
+#ifdef SKIP_GRAPHICS
+#warning "SKIP_GRAPHICS is enabled"
+#else
+#warning "SKIP_TEXT is NOT enabled"
+#endif
+
 
 #ifdef OBSERVED_DATA
     // Tested values
@@ -734,6 +740,7 @@ static void CB2_InitBattleInternal(void)
     if (!(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED)))
     {
         CreateNPCTrainerParty(&gEnemyParty[0], gTrainerBattleOpponent_A, TRUE);
+        #ifdef OBSERVED_DATA
         CreateMon(&gEnemyParty[0], SPECIES_MACHOKE, 12, 
             USE_RANDOM_IVS,     // Use random IVs
             FALSE,              // Don't use fixed personality
@@ -758,6 +765,7 @@ static void CB2_InitBattleInternal(void)
             0,                  // Personality value (unused since FALSE above)
             OT_ID_PLAYER_ID,   // Use player's ID as OT
             0);
+        #endif
         if (gBattleTypeFlags & BATTLE_TYPE_TWO_OPPONENTS)
             CreateNPCTrainerParty(&gEnemyParty[PARTY_SIZE / 2], gTrainerBattleOpponent_B, FALSE);
         SetWildMonHeldItem();
@@ -1923,7 +1931,6 @@ static void CB2_HandleStartMultiBattle(void)
 
 void BattleMainCB2(void)
 {
-    
     AnimateSprites();
     BuildOamBuffer();
     RunTextPrinters();
@@ -3080,6 +3087,7 @@ void BeginBattleIntroDummy(void)
 
 void BeginBattleIntro(void)
 {
+
     BattleStartClearSetData();
     gBattleCommunication[1] = 0;
     gBattleMainFunc = BattleIntroGetMonsData;
@@ -3099,7 +3107,9 @@ static void BattleStartClearSetData(void)
     u32 j;
     u8 *dataPtr;
 
+    #ifdef SKIP_ANIMATIONS
     gHitMarker |= HITMARKER_NO_ANIMATIONS; 
+    #endif 
 
     TurnValuesCleanUp(FALSE);
     SpecialStatusesClear();
@@ -4192,23 +4202,22 @@ void DumpLegalMoves(int gActiveBattler, u16 *dst){
 
     u8 unusableMoves = CheckMoveLimitations(gActiveBattler, 0, 0xFF);
     
-    DebugPrintf("Unusable moves bitfield: %x\n", unusableMoves);
 
     for (i = 0; i < MAX_MON_MOVES; i++) {
         u16 move = gBattleMons[gActiveBattler].moves[i];
         
         if (move != MOVE_NONE && gBattleMons[gActiveBattler].pp[i] > 0) {
             if (unusableMoves & gBitTable[i]) {
-                DebugPrintf("Move %d unusable due to limitations\n", move);
+                // DebugPrintf("Move %d unusable due to limitations\n", move);
                 dst[i] = FALSE;
             }
             else {
-                DebugPrintf("Move %d is legal\n", move);
+                // DebugPrintf("Move %d is legal\n", move);
                 dst[i] = TRUE;
             }
         }
         else {
-            DebugPrintf("Move %d illegal (no PP or doesn't exist)\n", move);
+            // DebugPrintf("Move %d illegal (no PP or doesn't exist)\n", move);
             dst[i] = FALSE;
         }
     }
@@ -4276,9 +4285,9 @@ static void HandleTurnActionSelectionState(void)
     s32 i;
    
     gBattleCommunication[ACTIONS_CONFIRMED_COUNT] = 0;
-    DumpLegalMoves(0,legalMoveActionsPlayer);
-    DumpLegalMoves(1,legalMoveActionsEnemy);
-    DumpMonData();
+    // DumpLegalMoves(0,legalMoveActionsPlayer);
+    // DumpLegalMoves(1,legalMoveActionsEnemy);
+    // DumpMonData();
     stopHandleTurn = 1;
     for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
     {
@@ -4329,7 +4338,7 @@ static void HandleTurnActionSelectionState(void)
         case STATE_WAIT_ACTION_CHOSEN: // Try to perform an action.
             DebugPrintf("gActive Battler %d is in %d state",gActiveBattler,gBattleCommunication[gActiveBattler] );
             
-            if ((!(gBattleControllerExecFlags & ((gBitTable[gActiveBattler]) | (0xF << 28) | (gBitTable[gActiveBattler] << 4) | (gBitTable[gActiveBattler] << 8) | (gBitTable[gActiveBattler] << 12))))|| gActiveBattler==0)
+            if ((!(gBattleControllerExecFlags & ((gBitTable[gActiveBattler]) | (0xF << 28) | (gBitTable[gActiveBattler] << 4) | (gBitTable[gActiveBattler] << 8) | (gBitTable[gActiveBattler] << 12))))|| gActiveBattler==0 ||gActiveBattler==1 )
             {
                 // DebugPrintf("gActive Battler %d choose action %d",gActiveBattler,gChosenActionByBattler[gActiveBattler] );
 
@@ -4759,7 +4768,8 @@ static void HandleTurnActionSelectionState(void)
     //PostStateMachine
     for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
     {
-        actionDone = 5;
+        DebugPrintf("gActiveBattler %d is in state %d\n",gActiveBattler,gBattleCommunication[gActiveBattler]);
+        actionDone = 0;
         if (gBattleCommunication[gActiveBattler] == STATE_BEFORE_ACTION_CHOSEN)
         {
             

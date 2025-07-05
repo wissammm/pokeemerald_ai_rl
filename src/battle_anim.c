@@ -207,6 +207,9 @@ void DoMoveAnim(u16 move)
 
 void LaunchBattleAnimation(const u8 *const animsTable[], u16 tableId, bool8 isMoveAnim)
 {
+    // #ifdef SKIP_GRAPHICS
+    // return;
+    // #endif
     s32 i;
 
     if (!IsContest())

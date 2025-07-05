@@ -1796,6 +1796,11 @@ static void Cmd_attackanimation(void)
 
 static void Cmd_waitanimation(void)
 {
+    // #ifdef SKIP_GRAPHICS
+    // gBattleControllerExecFlags |= gAnimScriptActive;
+    // gBattlescriptCurrInstr++;
+    // return;
+    // #endif
     if (gBattleControllerExecFlags == 0)
         gBattlescriptCurrInstr++;
 }
@@ -3992,6 +3997,9 @@ static void Cmd_endselectionscript(void)
 
 static void Cmd_playanimation(void)
 {
+    // #ifdef SKIP_GRAPHICS
+    // //Do Nothing
+    // #else
     const u16 *argumentPtr;
 
     gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
@@ -4029,6 +4037,8 @@ static void Cmd_playanimation(void)
         MarkBattlerForControllerExec(gActiveBattler);
         gBattlescriptCurrInstr += 7;
     }
+    // #endif
+
 }
 
 // Same as playanimation, except it takes a pointer to some animation id, instead of taking the value directly
@@ -10305,3 +10315,9 @@ static void Cmd_trainerslideout(void)
 
     gBattlescriptCurrInstr += 2;
 }
+
+#ifdef SKIP_GRAPHICS
+static void Cmd_nullanimscript(void){
+    //do nothing 
+}
+#endif
