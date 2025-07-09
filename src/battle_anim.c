@@ -202,7 +202,11 @@ void DoMoveAnim(u16 move)
 {
     gBattleAnimAttacker = gBattlerAttacker;
     gBattleAnimTarget = gBattlerTarget;
+    #ifndef SKIP_GRAPHICS
+    LaunchBattleAnimation(gBattleAnims_Moves, move, FALSE);
+    #else
     LaunchBattleAnimation(gBattleAnims_Moves, move, TRUE);
+    #endif
 }
 
 void LaunchBattleAnimation(const u8 *const animsTable[], u16 tableId, bool8 isMoveAnim)
@@ -328,10 +332,14 @@ static void WaitAnimFrameCount(void)
 
 static void RunAnimScriptCommand(void)
 {
+    #ifdef SKIP_GRAPHICS
+    gAnimScriptActive = FALSE;
+    #else
     do
     {
         sScriptCmdTable[sBattleAnimScriptPtr[0]]();
     } while (sAnimFramesToWait == 0 && gAnimScriptActive);
+    #endif
 }
 
 static void Cmd_loadspritegfx(void)
@@ -457,6 +465,11 @@ static void Cmd_delay(void)
 // Wait for visual tasks to finish.
 static void Cmd_waitforvisualfinish(void)
 {
+    #ifdef SKIP_GRAPHICS
+        // Skip waiting for animation completion
+        sBattleAnimScriptPtr++;
+        sAnimFramesToWait = 0;
+    #else
     if (gAnimVisualTaskCount == 0)
     {
         sBattleAnimScriptPtr++;
@@ -466,6 +479,7 @@ static void Cmd_waitforvisualfinish(void)
     {
         sAnimFramesToWait = 1;
     }
+    #endif
 }
 
 static void Cmd_nop(void)

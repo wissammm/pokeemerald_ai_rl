@@ -2184,6 +2184,11 @@ void UpdateHealthboxAttribute(u8 healthboxSpriteId, struct Pokemon *mon, u8 elem
             maxHp = GetMonData(mon, MON_DATA_MAX_HP);
             currHp = GetMonData(mon, MON_DATA_HP);
             SetBattleBarStruct(battlerId, healthboxSpriteId, maxHp, currHp, 0);
+
+            #ifdef SKIP_GRAPHICS
+            gBattleSpritesDataPtr->battleBars[battlerId].oldValue = currHp;
+            gBattleSpritesDataPtr->battleBars[battlerId].currValue = currHp;
+            #endif
             MoveBattleBar(battlerId, healthboxSpriteId, HEALTH_BAR, 0);
         }
         isDoubles = IsDoubleBattle();
@@ -2202,6 +2207,11 @@ void UpdateHealthboxAttribute(u8 healthboxSpriteId, struct Pokemon *mon, u8 elem
             currExpBarValue = exp - currLevelExp;
             maxExpBarValue = gExperienceTables[gSpeciesInfo[species].growthRate][level + 1] - currLevelExp;
             SetBattleBarStruct(battlerId, healthboxSpriteId, maxExpBarValue, currExpBarValue, isDoubles);
+            #ifdef SKIP_GRAPHICS
+            gBattleSpritesDataPtr->battleBars[battlerId].oldValue = currHp;
+            gBattleSpritesDataPtr->battleBars[battlerId].currValue = currHp;
+            #endif
+            DebugPrintf("UpdateHealthboxAttribute: species");
             MoveBattleBar(battlerId, healthboxSpriteId, EXP_BAR, 0);
         }
         if (elementId == HEALTHBOX_NICK || elementId == HEALTHBOX_ALL)

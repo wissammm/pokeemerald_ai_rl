@@ -546,17 +546,26 @@ void LaunchStatusAnimation(u8 battlerId, u8 statusAnimId)
 
     gBattleAnimAttacker = battlerId;
     gBattleAnimTarget = battlerId;
+    #ifndef SKIP_GRAPHICS
     LaunchBattleAnimation(gBattleAnims_StatusConditions, statusAnimId, FALSE);
     taskId = CreateTask(Task_DoStatusAnimation, 10);
     gTasks[taskId].data[0] = battlerId;
+    #endif
 }
 
 static void Task_DoStatusAnimation(u8 taskId)
 {
+    #ifdef SKIP_GRAPHICS
+    gAnimScriptActive = FALSE;
+    DestroyTask(taskId);
+    #else
     gAnimScriptCallback();
     if (!gAnimScriptActive)
     {
         gBattleSpritesDataPtr->healthBoxesData[gTasks[taskId].data[0]].statusAnimActive = FALSE;
         DestroyTask(taskId);
     }
+    #endif // SKIP_GRAPHICS
+
+    
 }

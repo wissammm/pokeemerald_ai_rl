@@ -1394,8 +1394,12 @@ static void CompleteWhenChoseItem(void)
 
 static void CompleteOnSpecialAnimDone(void)
 {
+    #ifdef SKIP_GRAPHICS
+    PlayerBufferExecCompleted();
+    #else
     if (!gDoingBattleAnim || !gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].specialAnimActive)
         PlayerBufferExecCompleted();
+    #endif
 }
 
 static void DoHitAnimBlinkSpriteEffect(void)
@@ -2876,6 +2880,9 @@ static void PlayerHandleToggleUnkFlag(void)
 
 static void PlayerHandleHitAnimation(void)
 {
+    #ifdef SKIP_GRAPHICS
+    PlayerBufferExecCompleted();
+    #else 
     if (gSprites[gBattlerSpriteIds[gActiveBattler]].invisible == TRUE)
     {
         PlayerBufferExecCompleted();
@@ -2887,6 +2894,7 @@ static void PlayerHandleHitAnimation(void)
         DoHitAnimHealthboxEffect(gActiveBattler);
         gBattlerControllerFuncs[gActiveBattler] = DoHitAnimBlinkSpriteEffect;
     }
+    #endif // SKIP_GRAPHICS
 }
 
 static void PlayerHandleCantSwitch(void)
@@ -2896,6 +2904,9 @@ static void PlayerHandleCantSwitch(void)
 
 static void PlayerHandlePlaySE(void)
 {
+    #ifdef SKIP_GRAPHICS
+    PlayerBufferExecCompleted();
+    #else
     s8 pan;
 
     if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
@@ -2905,10 +2916,14 @@ static void PlayerHandlePlaySE(void)
 
     PlaySE12WithPanning(gBattleBufferA[gActiveBattler][1] | (gBattleBufferA[gActiveBattler][2] << 8), pan);
     PlayerBufferExecCompleted();
+    #endif // SKIP_GRAPHICS
 }
 
 static void PlayerHandlePlayFanfareOrBGM(void)
 {
+    #ifdef SKIP_GRAPHICS
+    PlayerBufferExecCompleted();
+    #else
     if (gBattleBufferA[gActiveBattler][3])
     {
         BattleStopLowHpSound();
@@ -2920,21 +2935,30 @@ static void PlayerHandlePlayFanfareOrBGM(void)
     }
 
     PlayerBufferExecCompleted();
+    #endif // SKIP_GRAPHICS
 }
 
 static void PlayerHandleFaintingCry(void)
 {
+    #ifdef SKIP_GRAPHICS
+    PlayerBufferExecCompleted();
+    #else
     u16 species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_SPECIES);
 
     PlayCry_ByMode(species, -25, CRY_MODE_FAINT);
     PlayerBufferExecCompleted();
+    #endif // SKIP_GRAPHICS
 }
 
 static void PlayerHandleIntroSlide(void)
 {
+    #ifdef SKIP_GRAPHICS
+    PlayerBufferExecCompleted();
+    #else
     HandleIntroSlide(gBattleBufferA[gActiveBattler][1]);
     gIntroSlideFlags |= 1;
     PlayerBufferExecCompleted();
+    #endif // SKIP_GRAPHICS
 }
 
 // Task data for Task_StartSendOutAnim
@@ -2994,6 +3018,9 @@ static void Task_StartSendOutAnim(u8 taskId)
 {
     if (gTasks[taskId].tStartTimer < 31)
     {
+        #ifdef SKIP_GRAPHICS
+        gTasks[taskId].tStartTimer = 31;
+        #endif
         gTasks[taskId].tStartTimer++;
     }
     else
@@ -3063,9 +3090,13 @@ static void PlayerHandleHidePartyStatusSummary(void)
 
 static void PlayerHandleEndBounceEffect(void)
 {
+    #ifdef SKIP_GRAPHICS
+    PlayerBufferExecCompleted();
+    #else
     EndBounceEffect(gActiveBattler, BOUNCE_HEALTHBOX);
     EndBounceEffect(gActiveBattler, BOUNCE_MON);
     PlayerBufferExecCompleted();
+    #endif // SKIP_GRAPHICS
 }
 
 static void PlayerHandleSpriteInvisibility(void)
@@ -3080,6 +3111,9 @@ static void PlayerHandleSpriteInvisibility(void)
 
 static void PlayerHandleBattleAnimation(void)
 {
+    #ifdef SKIP_GRAPHICS
+    PlayerBufferExecCompleted();
+    #else
     if (!IsBattleSEPlaying(gActiveBattler))
     {
         u8 animationId = gBattleBufferA[gActiveBattler][1];
@@ -3092,6 +3126,7 @@ static void PlayerHandleBattleAnimation(void)
 
         BattleTv_SetDataBasedOnAnimation(animationId);
     }
+    #endif // SKIP_GRAPHICS
 }
 
 static void PlayerHandleLinkStandbyMsg(void)

@@ -772,6 +772,10 @@ void AnimTask_SwayMon(u8 taskId)
 
 static void AnimTask_SwayMonStep(u8 taskId)
 {
+    #ifdef SKIP_GRAPHICS
+    DestroyAnimVisualTask(taskId);
+    return;
+    #endif
     s16 sineValue;
     u8 spriteId;
     int waveIndex;
