@@ -239,6 +239,34 @@ EWRAM_DATA u16 gMoveToLearn = 0;
 EWRAM_DATA u8 gBattleMonForms[MAX_BATTLERS_COUNT] = {0};
 
 #ifdef OBSERVED_DATA
+DUMP_DATA volatile u16 testBuffer = 0;
+
+// Dump Data
+DUMP_DATA u32 playerTeam[6 * PARTY_SIZE];
+DUMP_DATA u32 enemyTeam[6 * PARTY_SIZE];
+
+DUMP_DATA u32 monDataPlayer[MON_DATA_U32_SIZE * PARTY_SIZE];
+DUMP_DATA u32 monDataEnemy[MON_DATA_U32_SIZE * PARTY_SIZE];
+
+DUMP_DATA u16 legalMoveActionsPlayer[MAX_MON_MOVES];
+DUMP_DATA u16 legalMoveActionsEnemy[MAX_MON_MOVES];
+
+DUMP_DATA u16 legalSwitchActionsPlayer[PARTY_SIZE];
+DUMP_DATA u16 legalSwitchActionsEnemy[PARTY_SIZE];
+
+// Wait Value
+DUMP_DATA volatile u16 stopHandleTurnPlayer = 0;
+DUMP_DATA volatile u16 stopHandleTurnEnemy = 0;
+DUMP_DATA volatile u16 stopHandleTurnCreateTeam = 0;
+DUMP_DATA volatile u16 stopHandleTurn = 0;
+
+// Action done
+DUMP_DATA u16 actionDonePlayer = 5;
+DUMP_DATA u16 actionDoneEnemy = 5;
+DUMP_DATA u16 actionDone = 0;
+#endif
+
+#ifdef OBSERVED_DATA
 #warning "OBSERVED_DATA is enabled"
 #else
 #warning "OBSERVED_DATA is NOT enabled"
@@ -255,30 +283,6 @@ EWRAM_DATA u8 gBattleMonForms[MAX_BATTLERS_COUNT] = {0};
 #warning "SKIP_GRAPHICS is enabled"
 #else
 #warning "SKIP_GRAPHICS is NOT enabled"
-#endif
-
-
-#ifdef OBSERVED_DATA
-    // Tested values
-    DUMP_DATA volatile u16 testBuffer = 0;
-    
-    // Data to retrives
-    #define MON_DATA_U32_SIZE 36
-    #define STATUS2_OFFSET 30 
-
-    DUMP_DATA u32 monDataPlayer[MON_DATA_U32_SIZE*PARTY_SIZE];
-    DUMP_DATA u32 monDataEnemy[MON_DATA_U32_SIZE*PARTY_SIZE];
-
-    DUMP_DATA u16 legalMoveActionsPlayer[MAX_MON_MOVES];
-    DUMP_DATA u16 legalMoveActionsEnemy[MAX_MON_MOVES];
-
-    DUMP_DATA u16 legalSwitchActionsPlayer[PARTY_SIZE];
-    DUMP_DATA u16 legalSwitchActionsEnemy[PARTY_SIZE];
-    
-    // Wait Value
-    DUMP_DATA u16 volatile stopHandleTurn = 0;
-    DUMP_DATA u16 actionDone = 5;
-
 #endif
 
 
@@ -741,12 +745,31 @@ static void CB2_InitBattleInternal(void)
     {
         CreateNPCTrainerParty(&gEnemyParty[0], gTrainerBattleOpponent_A, TRUE);
         #ifdef OBSERVED_DATA
-        CreateMon(&gEnemyParty[0], SPECIES_MACHOKE, 12, 
-            USE_RANDOM_IVS,     // Use random IVs
-            FALSE,              // Don't use fixed personality
-            0,                  // Personality value (unused since FALSE above)
-            OT_ID_PLAYER_ID,   // Use player's ID as OT
-            0);
+        stopHandleTurnCreateTeam=1;
+        // for(i=0; i < PARTY_SIZE; i++)
+        // {
+        //     CreateMon(&gEnemyParty[i], enemyTeam[i * 6 + 0], enemyTeam[i * 6 + 1], 
+        //         USE_RANDOM_IVS, 
+        //         FALSE,  
+        //         0,  
+        //         OT_ID_PLAYER_ID,   // Use player's ID as OT
+        //         0);
+        //     SetMonData(&gEnemyParty[i], MON_DATA_MOVE1, &enemyTeam[i * 6 + 2]);
+        //     SetMonData(&gEnemyParty[i], MON_DATA_MOVE2, &enemyTeam[i * 6 + 3]);
+        //     SetMonData(&gEnemyParty[i], MON_DATA_MOVE3, &enemyTeam[i * 6 + 4]);
+        //     SetMonData(&gEnemyParty[i], MON_DATA_MOVE4, &enemyTeam[i * 6 + 5]);
+
+        //     CreateMon(&gPlayerParty[i], playerTeam[i * 6 + 0], playerTeam[i * 6 + 1], 
+        //         USE_RANDOM_IVS,     
+        //         FALSE,             
+        //         0,   
+        //         OT_ID_PLAYER_ID,   // Use player's ID as OT
+        //         0);
+        //     SetMonData(&gPlayerParty[i], MON_DATA_MOVE1, &playerTeam[i * 6 + 2]);
+        //     SetMonData(&gPlayerParty[i], MON_DATA_MOVE2, &playerTeam[i * 6 + 3]);
+        //     SetMonData(&gPlayerParty[i], MON_DATA_MOVE3, &playerTeam[i * 6 + 4]);
+        //     SetMonData(&gPlayerParty[i], MON_DATA_MOVE4, &playerTeam[i * 6 + 5]);
+        // }
         CreateMon(&gEnemyParty[0], SPECIES_MACHOKE, 12, 
             USE_RANDOM_IVS,     // Use random IVs
             FALSE,              // Don't use fixed personality
@@ -4181,6 +4204,7 @@ enum
 };
 
 #ifdef OBSERVED_DATA
+
 void DumpMonData(){
     s32 i;
     for (i = 0; i < PARTY_SIZE; i++)
@@ -4228,6 +4252,7 @@ void DumpLegalMoves(int gActiveBattler, u16 *dst){
         }
     }
 }
+
 void DumpLegalSwitch(int gActiveBattler,u16 *dst){
     s32 i;
     s32 abilityCheck;
@@ -4281,7 +4306,6 @@ void DumpLegalSwitch(int gActiveBattler,u16 *dst){
 
         dst[i] = TRUE;
     }
-
 }
 #endif // OBSERVED_DATA
 
@@ -4291,7 +4315,6 @@ static void HandleTurnActionSelectionState(void)
     s32 i;
    
     gBattleCommunication[ACTIONS_CONFIRMED_COUNT] = 0;
-
     for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
     {
             // DebugPrintf("gActive Battler %d is in %d state",gActiveBattler,gBattleCommunication[gActiveBattler] );
@@ -4390,7 +4413,7 @@ static void HandleTurnActionSelectionState(void)
                         #ifdef OBSERVED_DATA
 
                        
-                        
+                        actionDone = (gActiveBattler==0)? actionDonePlayer : actionDoneEnemy;
                         u16 move = gBattleMons[gActiveBattler].moves[actionDone];
                         u8 moveTarget;
                         u8 targetBattler;
@@ -4745,6 +4768,7 @@ static void HandleTurnActionSelectionState(void)
                     gBattleCommunication[gActiveBattler] = *(gBattleStruct->stateIdAfterSelScript + gActiveBattler);
                 }
             }
+
             else
             {
                 gBattlerAttacker = gActiveBattler;
@@ -4764,21 +4788,30 @@ static void HandleTurnActionSelectionState(void)
     for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
     {
         // DebugPrintf("gActiveBattler %d is in state %d\n",gActiveBattler,gBattleCommunication[gActiveBattler]);
-        actionDone = 2;
+        actionDonePlayer = 1;
+        actionDoneEnemy = 0;
+        
+
         if (gBattleCommunication[gActiveBattler] == STATE_BEFORE_ACTION_CHOSEN)
         {
-            if(gActiveBattler==0){
+            if(gActiveBattler == PLAYER){
                 DumpLegalMoves(0,legalMoveActionsPlayer);
                 DumpLegalMoves(1,legalMoveActionsEnemy);
                 DumpMonData();
                 DebugPrintf("gActiveBattler 0  active mon hp = %d\n",gActiveBattler,GetMonData(&gPlayerParty[0], MON_DATA_HP));
-                stopHandleTurn = 1;
             }
             else
                 DebugPrintf("gActiveBattler 1  active mon hp = %d\n",gActiveBattler,GetMonData(&gEnemyParty[0], MON_DATA_HP));
-           
+            
+            stopHandleTurn = 1;
             gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CHOSEN;
-            gBattleBufferB[gActiveBattler][1] = (actionDone < 4) ? B_ACTION_USE_MOVE : B_ACTION_SWITCH;
+            if(gActiveBattler == PLAYER){
+                gBattleBufferB[gActiveBattler][1] = (actionDonePlayer < 4) ? B_ACTION_USE_MOVE : B_ACTION_SWITCH;
+            }
+            else{
+                gBattleBufferB[gActiveBattler][1] = (actionDoneEnemy < 4) ? B_ACTION_USE_MOVE : B_ACTION_SWITCH;
+
+            }
             // DebugPrintf("Action done = %d, gBattleBufferB[gActiveBattler][1] =  %d",actionDone,gBattleBufferB[gActiveBattler][1]);
             
         }

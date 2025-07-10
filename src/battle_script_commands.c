@@ -4862,6 +4862,61 @@ static void ChooseMonToSendOut(u8 slotId)
     MarkBattlerForControllerExec(gActiveBattler);
 }
 
+void DumpLegalSwitchBattleScript(int gActiveBattler,u16 *dst){
+    s32 i;
+    s32 abilityCheck;
+
+    *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
+
+    // global switch prevention conditions
+    bool8 preventSwitch = FALSE;
+    if (gBattleMons[gActiveBattler].status2 & (STATUS2_WRAPPED | STATUS2_ESCAPE_PREVENTION)
+        || gBattleTypeFlags & BATTLE_TYPE_ARENA
+        || gStatuses3[gActiveBattler] & STATUS3_ROOTED)
+    {
+        for (i = 0; i < PARTY_SIZE; i++)
+            dst[i] = FALSE;
+        return;
+    }
+
+    // ability-based switch prevention
+    if ((abilityCheck = ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_SHADOW_TAG))
+        || ((abilityCheck = ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_ARENA_TRAP))
+            && !IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_FLYING)
+            && gBattleMons[gActiveBattler].ability != ABILITY_LEVITATE)
+        || ((abilityCheck = AbilityBattleEffects(ABILITYEFFECT_CHECK_FIELD_EXCEPT_BATTLER, gActiveBattler, ABILITY_MAGNET_PULL, 0, 0))
+            && IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_STEEL)))
+    {
+        for (i = 0; i < PARTY_SIZE; i++)
+            dst[i] = FALSE;
+        return;
+    }
+
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        // can't switch to self
+        if (i == gBattlerPartyIndexes[gActiveBattler])
+        {
+            dst[i] = FALSE;
+            continue;
+        }
+
+        if (GetMonData(&gPlayerParty[i], MON_DATA_HP) == 0)
+        {
+            dst[i] = FALSE;
+            continue;
+        }
+
+        if (GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
+        {
+            dst[i] = FALSE;
+            continue;
+        }
+
+        dst[i] = TRUE;
+    }
+}
+
 static void Cmd_openpartyscreen(void)
 {
     u32 flags;
@@ -5120,34 +5175,24 @@ static void Cmd_openpartyscreen(void)
             // Auto-select the first valid Pokémon to switch in
             DebugPrintf("Cmd_openpartyscreen: OBSERVEDDATA %d\n");
             gActiveBattler = battlerId;
-            u8 slot;
-            u8 found = FALSE;
-            for (slot = 0; slot < PARTY_SIZE; slot++)
-            {
-                if (slot == gBattlerPartyIndexes[gActiveBattler])
-                    continue;
-                if (GetMonData(&gPlayerParty[slot], MON_DATA_HP) > 0 &&
-                    !GetMonData(&gPlayerParty[slot], MON_DATA_IS_EGG) &&
-                    GetMonData(&gPlayerParty[slot], MON_DATA_SPECIES) > 0)
-                {
-                    DebugPrintf("Cmd_openpartyscreen: gActiveBattler %d, slot %d, species %d\n", gActiveBattler, slot, GetMonData(&gPlayerParty[slot], MON_DATA_SPECIES));
-                    gBattleStruct->monToSwitchIntoId[gActiveBattler] = slot;
-                    gBattlerPartyIndexes[gActiveBattler] = slot;
-                    found = TRUE;
-                    break;
-                }
-            }
-            if (!found) {
-                // No valid Pokémon to switch to, handle as fainted/no replacement
-                gAbsentBattlerFlags |= gBitTable[gActiveBattler];
-                gHitMarker &= ~HITMARKER_FAINTED(gActiveBattler);
-                gBattlescriptCurrInstr = jumpPtr; // jumpPtr is set at the top of Cmd_openpartyscreen
-                return;
-            }
-             gActiveBattler = battlerId;
-            *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
             
-            *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = slot;
+            if(gActiveBattler == 0)
+            {
+                DumpLegalSwitchBattleScript(gActiveBattler, legalSwitchActionsPlayer);
+                stopHandleTurnPlayer = 1;
+                *(gBattleStruct->monToSwitchIntoId + gActiveBattler)  = actionDonePlayer - 4;
+                gBattlerPartyIndexes[gActiveBattler] = actionDonePlayer - 4;
+
+            }
+            else
+            {
+                DumpLegalSwitchBattleScript(gActiveBattler, legalSwitchActionsEnemy);
+                stopHandleTurnEnemy = 1;
+                *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = actionDoneEnemy - 4;
+                gBattlerPartyIndexes[gActiveBattler] = actionDoneEnemy - 4;
+            }
+
+            
             gBattleStruct->field_93 |= gBitTable[gActiveBattler]; // Mark as handled
             gSpecialStatuses[gActiveBattler].faintedHasReplacement = TRUE;
             BtlController_EmitChosenMonReturnValue(BUFFER_B,*(gBattleStruct->monToSwitchIntoId + gActiveBattler), gBattleBufferB[gActiveBattler]);
