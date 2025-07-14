@@ -32,6 +32,12 @@ static void VCountIntr(void);
 static void SerialIntr(void);
 static void IntrDummy(void);
 
+#ifdef OBSERVED_DATA
+DUMP_DATA u32 testBuffer = 3;
+DUMP_DATA u32 listTestBuffer[6];
+DUMP_DATA u16 stopTestReadWrite = 0;
+#endif
+
 const u8 gGameVersion = GAME_VERSION;
 
 const u8 gGameLanguage = GAME_LANGUAGE; // English
@@ -89,6 +95,16 @@ void EnableVCountIntrAtLine150(void);
 
 void AgbMain()
 {
+    #ifdef OBSERVED_DATA
+    listTestBuffer[0] = 10;
+    listTestBuffer[1] = 87;
+    listTestBuffer[2] = 76;
+    listTestBuffer[3] = 65;
+    listTestBuffer[4] = 1;
+    listTestBuffer[5] = 0;
+    testBuffer = 3;
+    stopTestReadWrite = 1;
+    #endif
     // PrintPokemonData(SPECIES_BULBASAUR);
     // Modern compilers are liberal with the stack on entry to this function,
     // so RegisterRamReset may crash if it resets IWRAM.

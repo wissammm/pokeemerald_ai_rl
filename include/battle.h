@@ -7,36 +7,36 @@
 #define ENEMY 1
 
 // Data to retrives
-#define MON_DATA_U32_SIZE 36
+#define MON_DATA_U32_SIZE 35
 #define STATUS2_OFFSET 30
 
-// Tested values
-extern DUMP_DATA volatile u16 testBuffer;
 
 // Dump Data
-extern DUMP_DATA u32 playerTeam[6 * PARTY_SIZE];
-extern DUMP_DATA u32 enemyTeam[6 * PARTY_SIZE];
+extern volatile DUMP_DATA u32 playerTeam[6 * PARTY_SIZE];
+extern volatile DUMP_DATA u32 enemyTeam[6 * PARTY_SIZE];
 
-extern DUMP_DATA u32 monDataPlayer[MON_DATA_U32_SIZE * PARTY_SIZE];
-extern DUMP_DATA u32 monDataEnemy[MON_DATA_U32_SIZE * PARTY_SIZE];
+extern volatile DUMP_DATA u32 enemyWon;
 
-extern DUMP_DATA u16 legalMoveActionsPlayer[MAX_MON_MOVES];
-extern DUMP_DATA u16 legalMoveActionsEnemy[MAX_MON_MOVES];
+extern volatile DUMP_DATA u32 monDataPlayer[MON_DATA_U32_SIZE * PARTY_SIZE];
+extern volatile DUMP_DATA u32 monDataEnemy[MON_DATA_U32_SIZE * PARTY_SIZE];
 
-extern DUMP_DATA u16 legalSwitchActionsPlayer[PARTY_SIZE];
-extern DUMP_DATA u16 legalSwitchActionsEnemy[PARTY_SIZE];
+extern volatile DUMP_DATA u16 legalMoveActionsPlayer[MAX_MON_MOVES];
+extern volatile DUMP_DATA u16 legalMoveActionsEnemy[MAX_MON_MOVES];
+
+extern volatile DUMP_DATA u16 legalSwitchActionsPlayer[PARTY_SIZE];
+extern volatile DUMP_DATA u16 legalSwitchActionsEnemy[PARTY_SIZE];
 
 // Wait Value
-extern DUMP_DATA volatile u16 stopHandleTurnPlayer;
-extern DUMP_DATA volatile u16 stopHandleTurnEnemy;
-extern DUMP_DATA volatile u16 stopHandleTurnCreateTeam;
-extern DUMP_DATA volatile u16 stopHandleTurn;
+extern volatile DUMP_DATA u16 stopHandleTurnPlayer;
+extern volatile DUMP_DATA u16 stopHandleTurnEnemy;
+extern volatile DUMP_DATA u16 stopHandleTurnCreateTeam;
+extern volatile DUMP_DATA u16 stopHandleTurn;
+extern volatile DUMP_DATA u16 stopHandleTurnEnd;
 
 // Action done
-extern DUMP_DATA u16 actionDonePlayer;
-extern DUMP_DATA u16 actionDoneEnemy;
-extern DUMP_DATA u16 actionDone;
-
+extern volatile DUMP_DATA u16 actionDonePlayer;
+extern volatile DUMP_DATA u16 actionDoneEnemy;
+extern volatile DUMP_DATA u16 actionDone;
 #endif
 
 

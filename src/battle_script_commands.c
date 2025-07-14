@@ -3555,7 +3555,13 @@ static void Cmd_checkteamslost(void)
         }
     }
     if (HP_count == 0)
+    {
+        #ifdef OBSERVED_DATA
+        enemyWon = TRUE;
+        stopHandleTurnEnd = 1;
+        #endif
         gBattleOutcome |= B_OUTCOME_LOST;
+    }
     HP_count = 0;
 
     // Get total HP for the enemy's party to determine if the player has won
@@ -3568,7 +3574,13 @@ static void Cmd_checkteamslost(void)
         }
     }
     if (HP_count == 0)
+    {
+        #ifdef OBSERVED_DATA
+        enemyWon = FALSE;
+        stopHandleTurnEnd = 1;
+        #endif
         gBattleOutcome |= B_OUTCOME_WON;
+    }
 
     // For link battles that haven't ended, count number of empty battler spots
     // In link multi battles, jump to pointer if more than 1 spot empty
