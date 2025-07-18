@@ -7,16 +7,6 @@ static const struct TrainerMonNoItemDefaultMoves sParty_Sawyer1[] = {
 };
 
 static const struct TrainerMonNoItemDefaultMoves sParty_NewNPC[] = {
-    {
-        .iv = 50,
-        .lvl = 10,
-        .species = SPECIES_POOCHYENA,
-    },
-    {
-        .iv = 100,
-        .lvl = 12,
-        .species = SPECIES_ZIGZAGOON,
-    },
 };
 
 static const struct TrainerMonNoItemDefaultMoves sParty_GruntAquaHideout1[] = {
