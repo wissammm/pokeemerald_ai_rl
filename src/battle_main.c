@@ -241,7 +241,7 @@ EWRAM_DATA u8 gBattleMonForms[MAX_BATTLERS_COUNT] = {0};
 
 #ifdef OBSERVED_DATA
 
-#define ID_OFFSET        0  
+#define ID_OFFSET       0
 #define LEVEL_OFFSET   1
 #define MOVE1_OFFSET  2
 #define MOVE2_OFFSET 3
@@ -250,8 +250,8 @@ EWRAM_DATA u8 gBattleMonForms[MAX_BATTLERS_COUNT] = {0};
 #define HP_OFFSET       6 
 
 // Dump Data
-volatile DUMP_DATA u32 playerTeam[6 * PARTY_SIZE];
-volatile DUMP_DATA u32 enemyTeam[6 * PARTY_SIZE];
+volatile DUMP_DATA u32 playerTeam[7 * PARTY_SIZE];
+volatile DUMP_DATA u32 enemyTeam[7 * PARTY_SIZE];
 
 volatile DUMP_DATA u32 enemyWon = 0;
 
@@ -761,26 +761,27 @@ static void CB2_InitBattleInternal(void)
         
         stopHandleTurnCreateTeam=1;
         
-        if (enemyTeam[0]==0){
-            u32 _enemyTeam[] =  {
-            7, 10, 150, 53, 54, 55, 10, 
-            0, 10, 0, 0, 0, 0, 0,    
-            0, 10, 0, 0, 0, 0, 0,
-            0, 10, 0, 0, 0, 0, 0,
-            0, 10, 0, 0, 0, 0, 0,
-            0, 10, 0, 0, 0, 0, 0
-            };
-            memcpy(enemyTeam, _enemyTeam, sizeof(_enemyTeam));
-            u32 _playerTeam[] = {
-            25, 99, 86, 87, 90, 0, 100,  
-            0, 10, 0, 0, 0, 0, 0,        
-            0, 10, 0, 0, 0, 0, 0,
-            0, 10, 0, 0, 0, 0, 0,
-            0, 10, 0, 0, 0, 0, 0,
-            0, 10, 0, 0, 0, 0, 0
-            };
-            memcpy(playerTeam, _playerTeam, sizeof(_playerTeam));
-        }
+        // if (enemyTeam[0]==0){
+        //     DebugPrintf("Should not be here");
+        //     u32 _enemyTeam[] =  {
+        //     7, 11, 150, 53, 54, 55, 12, 
+        //     0, 13, 0, 0, 0, 0, 0,    
+        //     0, 10, 0, 0, 0, 0, 0,
+        //     0, 10, 0, 0, 0, 0, 0,
+        //     0, 10, 0, 0, 0, 0, 0,
+        //     0, 10, 0, 0, 0, 0, 0
+        //     };
+        //     memcpy(enemyTeam, _enemyTeam, sizeof(_enemyTeam));
+        //     u32 _playerTeam[] = {
+        //     25, 99, 86, 87, 90, 0, 100,  
+        //     0, 10, 0, 0, 0, 0, 0,        
+        //     0, 10, 0, 0, 0, 0, 0,
+        //     0, 10, 0, 0, 0, 0, 0,
+        //     0, 10, 0, 0, 0, 0, 0,
+        //     0, 10, 0, 0, 0, 0, 0
+        //     };
+        //     memcpy(playerTeam, _playerTeam, sizeof(_playerTeam));
+        // }
 
         // CreateMon(&gEnemyParty[0], SPECIES_MACHOKE, 12, 
         //     USE_RANDOM_IVS,     // Use random IVs
@@ -812,6 +813,7 @@ static void CB2_InitBattleInternal(void)
         {
             u32 hp = 0;
             if(enemyTeam[i * 7 + ID_OFFSET] != 0){
+                // DebugPrintf("Creating enemy mon %d, level %d", enemyTeam[i * 7 + ID_OFFSET], enemyTeam[i * 7 + LEVEL_OFFSET]);
                 CreateMon(&gEnemyParty[i], enemyTeam[i * 7 + ID_OFFSET], enemyTeam[i * 7 + LEVEL_OFFSET], 
                 USE_RANDOM_IVS, 
                 FALSE,  
@@ -828,10 +830,16 @@ static void CB2_InitBattleInternal(void)
                 // Calculate and set the HP based on the percentage
                 hp = (u32)((enemyTeam[i * 7 + HP_OFFSET] * GetMonData(&gEnemyParty[i], MON_DATA_MAX_HP)) / 100);
                 SetMonData(&gEnemyParty[i], MON_DATA_HP, &hp);
-         
+
+                // DebugPrintf("Enemy mon %d: Species %d, Level %d, HP %d", i, enemyTeam[i * 7 + ID_OFFSET], enemyTeam[i * 7 + LEVEL_OFFSET], hp);
+                DebugPrintf("Enemy mon %d: Species %d, Level %d, HP %d", i, GetMonData(&gEnemyParty[i],MON_DATA_SPECIES,NULL), enemyTeam[i * 7 + LEVEL_OFFSET], hp);
+                DebugPrintf("value of the tab, species %d, level %d, hp %d", enemyTeam[i * 7 + ID_OFFSET], enemyTeam[i * 7 + LEVEL_OFFSET], enemyTeam[i * 7 + HP_OFFSET]);
+                
             }
 
             if(playerTeam[i * 7 + ID_OFFSET] != 0){
+                // DebugPrintf("Creating player mon %d, level %d", enemyTeam[i * 7 + ID_OFFSET], enemyTeam[i * 7 + LEVEL_OFFSET]);
+
                 CreateMon(&gPlayerParty[i], playerTeam[i * 7 + ID_OFFSET], playerTeam[i * 7 + LEVEL_OFFSET], 
                     USE_RANDOM_IVS, 
                     FALSE,  
@@ -846,6 +854,10 @@ static void CB2_InitBattleInternal(void)
 
                 hp = (u32)((playerTeam[i * 7 + HP_OFFSET] * GetMonData(&gPlayerParty[i], MON_DATA_MAX_HP)) / 100);
                 SetMonData(&gPlayerParty[i], MON_DATA_HP, &hp);
+
+                DebugPrintf("Player mon %d: Species %d, Level %d, HP %d", i, GetMonData(&gPlayerParty[i],MON_DATA_SPECIES,NULL), playerTeam[i * 7 + LEVEL_OFFSET], hp);
+                DebugPrintf("value of the tab, species %d, level %d, hp %d", playerTeam[i * 7 + ID_OFFSET], playerTeam[i * 7 + LEVEL_OFFSET], playerTeam[i * 7 + HP_OFFSET]);
+                
             }
            
             
@@ -4855,8 +4867,8 @@ static void HandleTurnActionSelectionState(void)
     {
 
         // DebugPrintf("gActiveBattler %d is in state %d\n",gActiveBattler,gBattleCommunication[gActiveBattler]);
-        actionDonePlayer = 1;
-        actionDoneEnemy = 0;
+        // actionDonePlayer = 0;
+        // actionDoneEnemy = 0;
 
         if (gBattleCommunication[gActiveBattler] == STATE_BEFORE_ACTION_CHOSEN)
         {
@@ -4866,6 +4878,8 @@ static void HandleTurnActionSelectionState(void)
                 DumpMonData();
                 
                 stopHandleTurn = 1;
+                DebugPrintf("actionDonePlayer = %d",actionDonePlayer);
+                DebugPrintf("actionDoneEnemy = %d",actionDoneEnemy);
                 DebugPrintf("stopHandleTurn = %d",stopHandleTurn);
 
             }

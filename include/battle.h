@@ -1,3 +1,4 @@
+
 #ifndef GUARD_BATTLE_H
 #define GUARD_BATTLE_H
 
@@ -12,8 +13,8 @@
 
 
 // Dump Data
-extern volatile DUMP_DATA u32 playerTeam[6 * PARTY_SIZE];
-extern volatile DUMP_DATA u32 enemyTeam[6 * PARTY_SIZE];
+extern volatile DUMP_DATA u32 playerTeam[7 * PARTY_SIZE];
+extern volatile DUMP_DATA u32 enemyTeam[7 * PARTY_SIZE];
 
 extern volatile DUMP_DATA u32 enemyWon;
 
