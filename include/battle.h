@@ -18,8 +18,8 @@ extern volatile DUMP_DATA u32 enemyTeam[7 * PARTY_SIZE];
 
 extern volatile DUMP_DATA u32 enemyWon;
 
-extern volatile DUMP_DATA u32 monDataPlayer[MON_DATA_U32_SIZE * PARTY_SIZE];
-extern volatile DUMP_DATA u32 monDataEnemy[MON_DATA_U32_SIZE * PARTY_SIZE];
+extern DUMP_DATA u32 monDataPlayer[MON_DATA_U32_SIZE * PARTY_SIZE];
+extern DUMP_DATA u32 monDataEnemy[MON_DATA_U32_SIZE * PARTY_SIZE];
 
 extern volatile DUMP_DATA u16 legalMoveActionsPlayer[MAX_MON_MOVES];
 extern volatile DUMP_DATA u16 legalMoveActionsEnemy[MAX_MON_MOVES];
