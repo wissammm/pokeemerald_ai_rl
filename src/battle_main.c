@@ -250,31 +250,31 @@ EWRAM_DATA u8 gBattleMonForms[MAX_BATTLERS_COUNT] = {0};
 #define HP_OFFSET       6 
 
 // Dump Data
-volatile DUMP_DATA u32 playerTeam[7 * PARTY_SIZE];
-volatile DUMP_DATA u32 enemyTeam[7 * PARTY_SIZE];
+volatile EWRAM_DATA u32 playerTeam[7 * PARTY_SIZE];
+volatile EWRAM_DATA u32 enemyTeam[7 * PARTY_SIZE];
 
-volatile DUMP_DATA u32 enemyWon = 0;
+volatile EWRAM_DATA u32 enemyWon = 0;
 
-volatile DUMP_DATA u32 monDataPlayer[MON_DATA_U32_SIZE * PARTY_SIZE];
-volatile DUMP_DATA u32 monDataEnemy[MON_DATA_U32_SIZE * PARTY_SIZE];
+volatile EWRAM_DATA u32 monDataPlayer[MON_DATA_U32_SIZE * PARTY_SIZE];
+volatile EWRAM_DATA u32 monDataEnemy[MON_DATA_U32_SIZE * PARTY_SIZE];
 
-volatile DUMP_DATA u16 legalMoveActionsPlayer[MAX_MON_MOVES];
-volatile DUMP_DATA u16 legalMoveActionsEnemy[MAX_MON_MOVES];
+volatile EWRAM_DATA u16 legalMoveActionsPlayer[MAX_MON_MOVES];
+volatile EWRAM_DATA u16 legalMoveActionsEnemy[MAX_MON_MOVES];
 
-volatile DUMP_DATA u16 legalSwitchActionsPlayer[PARTY_SIZE];
-volatile DUMP_DATA u16 legalSwitchActionsEnemy[PARTY_SIZE];
+volatile EWRAM_DATA u16 legalSwitchActionsPlayer[PARTY_SIZE];
+volatile EWRAM_DATA u16 legalSwitchActionsEnemy[PARTY_SIZE];
 
 // Wait Value
-volatile DUMP_DATA u16 stopHandleTurnPlayer = 0;
-volatile DUMP_DATA u16 stopHandleTurnEnemy = 0;
-volatile DUMP_DATA u16 stopHandleTurnCreateTeam = 0;
-volatile DUMP_DATA u16 stopHandleTurn = 0;
-volatile DUMP_DATA u16 stopHandleTurnEnd = 0;
+volatile EWRAM_DATA u16 stopHandleTurnPlayer = 0;
+volatile EWRAM_DATA u16 stopHandleTurnEnemy = 0;
+volatile EWRAM_DATA u16 stopHandleTurnCreateTeam = 0;
+volatile EWRAM_DATA u16 stopHandleTurn = 0;
+volatile EWRAM_DATA u16 stopHandleTurnEnd = 0;
 
 // Action done
-volatile DUMP_DATA u16 actionDonePlayer = 5;
-volatile DUMP_DATA u16 actionDoneEnemy = 5;
-volatile DUMP_DATA u16 actionDone = 0;
+volatile EWRAM_DATA u16 actionDonePlayer = 5;
+volatile EWRAM_DATA u16 actionDoneEnemy = 5;
+volatile EWRAM_DATA u16 actionDone = 0;
 #endif
 
 #ifdef OBSERVED_DATA
@@ -760,7 +760,7 @@ static void CB2_InitBattleInternal(void)
         #ifdef OBSERVED_DATA
         
         stopHandleTurnCreateTeam=1;
-        
+
         if (enemyTeam[0]==0){
             DebugPrintf("Should not be here");
             u32 _enemyTeam[] =  {
