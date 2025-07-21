@@ -761,106 +761,113 @@ static void CB2_InitBattleInternal(void)
         
         stopHandleTurnCreateTeam=1;
         
-        // if (enemyTeam[0]==0){
-        //     DebugPrintf("Should not be here");
-        //     u32 _enemyTeam[] =  {
-        //     7, 11, 150, 53, 54, 55, 12, 
-        //     0, 13, 0, 0, 0, 0, 0,    
-        //     0, 10, 0, 0, 0, 0, 0,
-        //     0, 10, 0, 0, 0, 0, 0,
-        //     0, 10, 0, 0, 0, 0, 0,
-        //     0, 10, 0, 0, 0, 0, 0
-        //     };
-        //     memcpy(enemyTeam, _enemyTeam, sizeof(_enemyTeam));
-        //     u32 _playerTeam[] = {
-        //     25, 99, 86, 87, 90, 0, 100,  
-        //     0, 10, 0, 0, 0, 0, 0,        
-        //     0, 10, 0, 0, 0, 0, 0,
-        //     0, 10, 0, 0, 0, 0, 0,
-        //     0, 10, 0, 0, 0, 0, 0,
-        //     0, 10, 0, 0, 0, 0, 0
-        //     };
-        //     memcpy(playerTeam, _playerTeam, sizeof(_playerTeam));
-        // }
-
-        // CreateMon(&gEnemyParty[0], SPECIES_MACHOKE, 12, 
-        //     USE_RANDOM_IVS,     // Use random IVs
-        //     FALSE,              // Don't use fixed personality
-        //     0,                  // Personality value (unused since FALSE above)
-        //     OT_ID_PLAYER_ID,   // Use player's ID as OT
-        //     0);
-        // CreateMon(&gEnemyParty[1], 301, 12, 
-        //     USE_RANDOM_IVS,     // Use random IVs
-        //     FALSE,              // Don't use fixed personality
-        //     0,                  // Personality value (unused since FALSE above)
-        //     OT_ID_PLAYER_ID,   // Use player's ID as OT
-        //     0);
-        // CreateMon(&gPlayerParty[0], 20, 10, 
-        //     USE_RANDOM_IVS,     // Use random IVs
-        //     FALSE,              // Don't use fixed personality
-        //     0,                  // Personality value (unused since FALSE above)
-        //     OT_ID_PLAYER_ID,   // Use player's ID as OT
-        //     0);
-        // CreateMon(&gPlayerParty[1], 100, 10, 
-        //     USE_RANDOM_IVS,     // Use random IVs
-        //     FALSE,              // Don't use fixed personality
-        //     0,                  // Personality value (unused since FALSE above)
-        //     OT_ID_PLAYER_ID,   // Use player's ID as OT
-        //     0);
-        
-        
-         for(i=0; i < PARTY_SIZE; i++)
-        {
-            u32 hp = 0;
-            if(enemyTeam[i * 7 + ID_OFFSET] != 0){
-                // DebugPrintf("Creating enemy mon %d, level %d", enemyTeam[i * 7 + ID_OFFSET], enemyTeam[i * 7 + LEVEL_OFFSET]);
-                CreateMon(&gEnemyParty[i], enemyTeam[i * 7 + ID_OFFSET], enemyTeam[i * 7 + LEVEL_OFFSET], 
-                USE_RANDOM_IVS, 
-                FALSE,  
-                0,  
-                OT_ID_PLAYER_ID,   // Use player's ID as OT
-                0);
-
-                // Set the moves
-                SetMonData(&gEnemyParty[i], MON_DATA_MOVE1, &enemyTeam[i * 7 + MOVE1_OFFSET]);
-                SetMonData(&gEnemyParty[i], MON_DATA_MOVE2, &enemyTeam[i * 7 + MOVE2_OFFSET]);
-                SetMonData(&gEnemyParty[i], MON_DATA_MOVE3, &enemyTeam[i * 7 + MOVE3_OFFSET]);
-                SetMonData(&gEnemyParty[i], MON_DATA_MOVE4, &enemyTeam[i * 7 + MOVE4_OFFSET]);
-
-                // Calculate and set the HP based on the percentage
-                hp = (u32)((enemyTeam[i * 7 + HP_OFFSET] * GetMonData(&gEnemyParty[i], MON_DATA_MAX_HP)) / 100);
-                SetMonData(&gEnemyParty[i], MON_DATA_HP, &hp);
-
-                // DebugPrintf("Enemy mon %d: Species %d, Level %d, HP %d", i, enemyTeam[i * 7 + ID_OFFSET], enemyTeam[i * 7 + LEVEL_OFFSET], hp);
-                DebugPrintf("Enemy mon %d: Species %d, Level %d, HP %d", i, GetMonData(&gEnemyParty[i],MON_DATA_SPECIES,NULL), enemyTeam[i * 7 + LEVEL_OFFSET], hp);
-                DebugPrintf("value of the tab, species %d, level %d, hp %d", enemyTeam[i * 7 + ID_OFFSET], enemyTeam[i * 7 + LEVEL_OFFSET], enemyTeam[i * 7 + HP_OFFSET]);
-                
-            }
-
-            if(playerTeam[i * 7 + ID_OFFSET] != 0){
-                // DebugPrintf("Creating player mon %d, level %d", enemyTeam[i * 7 + ID_OFFSET], enemyTeam[i * 7 + LEVEL_OFFSET]);
-
-                CreateMon(&gPlayerParty[i], playerTeam[i * 7 + ID_OFFSET], playerTeam[i * 7 + LEVEL_OFFSET], 
+        if (enemyTeam[0]==0){
+            DebugPrintf("Should not be here");
+            u32 _enemyTeam[] =  {
+            352,  15, 5, 5, 5,      5, 100, 
+            15,     15, 5,   5,   5,  5, 100, 
+            145,  15, 5,   5, 5,    5, 100, 
+            404, 15, 5, 5, 5,  5, 100,
+            243, 10, 5, 5,   5, 5, 100, 
+            86,    10, 5,      5,  5,  5, 100
+            };
+            u32 _playerTeam[] = {
+            403, 10, 205, 164, 102, 68, 100, 
+            190, 10, 39, 173, 210, 129, 100, 
+            350, 10, 111, 173, 164, 204, 100, 
+            228, 10, 46, 185, 242, 102, 100, 
+            0, 10, 33, 172, 52, 164, 100,
+            0, 10, 29, 38, 164, 73, 100
+            };
+            for(i=0; i < PARTY_SIZE; i++)
+            {
+                u32 hp = 0;
+                if(_enemyTeam[i * 7 + ID_OFFSET] != 0){
+                    // DebugPrintf("Creating enemy mon %d, level %d", enemyTeam[i * 7 + ID_OFFSET], enemyTeam[i * 7 + LEVEL_OFFSET]);
+                    CreateMon(&gEnemyParty[i], _enemyTeam[i * 7 + ID_OFFSET], _enemyTeam[i * 7 + LEVEL_OFFSET], 
                     USE_RANDOM_IVS, 
                     FALSE,  
                     0,  
                     OT_ID_PLAYER_ID,   // Use player's ID as OT
                     0);
 
-                SetMonData(&gPlayerParty[i], MON_DATA_MOVE1, &playerTeam[i * 7 + MOVE1_OFFSET]);
-                SetMonData(&gPlayerParty[i], MON_DATA_MOVE2, &playerTeam[i * 7 + MOVE2_OFFSET]);
-                SetMonData(&gPlayerParty[i], MON_DATA_MOVE3, &playerTeam[i * 7 + MOVE3_OFFSET]);
-                SetMonData(&gPlayerParty[i], MON_DATA_MOVE4, &playerTeam[i * 7 + MOVE4_OFFSET]);
+                    // Set the moves
+                    SetMonData(&gEnemyParty[i], MON_DATA_MOVE1, &_enemyTeam[i * 7 + MOVE1_OFFSET]);
+                    SetMonData(&gEnemyParty[i], MON_DATA_MOVE2, &_enemyTeam[i * 7 + MOVE2_OFFSET]);
+                    SetMonData(&gEnemyParty[i], MON_DATA_MOVE3, &_enemyTeam[i * 7 + MOVE3_OFFSET]);
+                    SetMonData(&gEnemyParty[i], MON_DATA_MOVE4, &_enemyTeam[i * 7 + MOVE4_OFFSET]);
 
-                hp = (u32)((playerTeam[i * 7 + HP_OFFSET] * GetMonData(&gPlayerParty[i], MON_DATA_MAX_HP)) / 100);
-                SetMonData(&gPlayerParty[i], MON_DATA_HP, &hp);
+                    // Calculate and set the HP based on the percentage
+                    hp = (u32)((_enemyTeam[i * 7 + HP_OFFSET] * GetMonData(&gEnemyParty[i], MON_DATA_MAX_HP)) / 100);
+                    SetMonData(&gEnemyParty[i], MON_DATA_HP, &hp);
+                    
+                }
 
-                DebugPrintf("Player mon %d: Species %d, Level %d, HP %d", i, GetMonData(&gPlayerParty[i],MON_DATA_SPECIES,NULL), playerTeam[i * 7 + LEVEL_OFFSET], hp);
-                DebugPrintf("value of the tab, species %d, level %d, hp %d", playerTeam[i * 7 + ID_OFFSET], playerTeam[i * 7 + LEVEL_OFFSET], playerTeam[i * 7 + HP_OFFSET]);
-                
+                if(_playerTeam[i * 7 + ID_OFFSET] != 0){
+
+                    CreateMon(&gPlayerParty[i], _playerTeam[i * 7 + ID_OFFSET], _playerTeam[i * 7 + LEVEL_OFFSET], 
+                        USE_RANDOM_IVS, 
+                        FALSE,  
+                        0,  
+                        OT_ID_PLAYER_ID,   // Use player's ID as OT
+                        0);
+
+                    SetMonData(&gPlayerParty[i], MON_DATA_MOVE1, &_playerTeam[i * 7 + MOVE1_OFFSET]);
+                    SetMonData(&gPlayerParty[i], MON_DATA_MOVE2, &_playerTeam[i * 7 + MOVE2_OFFSET]);
+                    SetMonData(&gPlayerParty[i], MON_DATA_MOVE3, &_playerTeam[i * 7 + MOVE3_OFFSET]);
+                    SetMonData(&gPlayerParty[i], MON_DATA_MOVE4, &_playerTeam[i * 7 + MOVE4_OFFSET]);
+
+                    hp = (u32)((_playerTeam[i * 7 + HP_OFFSET] * GetMonData(&gPlayerParty[i], MON_DATA_MAX_HP)) / 100);
+                    SetMonData(&gPlayerParty[i], MON_DATA_HP, &hp);
+                    
+                }   
             }
-           
-            
+        }
+
+        else{
+             for(i=0; i < PARTY_SIZE; i++)
+            {
+                u32 hp = 0;
+                if(enemyTeam[i * 7 + ID_OFFSET] != 0){
+                    // DebugPrintf("Creating enemy mon %d, level %d", enemyTeam[i * 7 + ID_OFFSET], enemyTeam[i * 7 + LEVEL_OFFSET]);
+                    CreateMon(&gEnemyParty[i], enemyTeam[i * 7 + ID_OFFSET], enemyTeam[i * 7 + LEVEL_OFFSET], 
+                    USE_RANDOM_IVS, 
+                    FALSE,  
+                    0,  
+                    OT_ID_PLAYER_ID,   // Use player's ID as OT
+                    0);
+
+                    // Set the moves
+                    SetMonData(&gEnemyParty[i], MON_DATA_MOVE1, &enemyTeam[i * 7 + MOVE1_OFFSET]);
+                    SetMonData(&gEnemyParty[i], MON_DATA_MOVE2, &enemyTeam[i * 7 + MOVE2_OFFSET]);
+                    SetMonData(&gEnemyParty[i], MON_DATA_MOVE3, &enemyTeam[i * 7 + MOVE3_OFFSET]);
+                    SetMonData(&gEnemyParty[i], MON_DATA_MOVE4, &enemyTeam[i * 7 + MOVE4_OFFSET]);
+
+                    // Calculate and set the HP based on the percentage
+                    hp = (u32)((enemyTeam[i * 7 + HP_OFFSET] * GetMonData(&gEnemyParty[i], MON_DATA_MAX_HP)) / 100);
+                    SetMonData(&gEnemyParty[i], MON_DATA_HP, &hp);
+                    
+                }
+
+                if(playerTeam[i * 7 + ID_OFFSET] != 0){
+
+                    CreateMon(&gPlayerParty[i], playerTeam[i * 7 + ID_OFFSET], playerTeam[i * 7 + LEVEL_OFFSET], 
+                        USE_RANDOM_IVS, 
+                        FALSE,  
+                        0,  
+                        OT_ID_PLAYER_ID,   // Use player's ID as OT
+                        0);
+
+                    SetMonData(&gPlayerParty[i], MON_DATA_MOVE1, &playerTeam[i * 7 + MOVE1_OFFSET]);
+                    SetMonData(&gPlayerParty[i], MON_DATA_MOVE2, &playerTeam[i * 7 + MOVE2_OFFSET]);
+                    SetMonData(&gPlayerParty[i], MON_DATA_MOVE3, &playerTeam[i * 7 + MOVE3_OFFSET]);
+                    SetMonData(&gPlayerParty[i], MON_DATA_MOVE4, &playerTeam[i * 7 + MOVE4_OFFSET]);
+
+                    hp = (u32)((playerTeam[i * 7 + HP_OFFSET] * GetMonData(&gPlayerParty[i], MON_DATA_MAX_HP)) / 100);
+                    SetMonData(&gPlayerParty[i], MON_DATA_HP, &hp);
+                    
+                }   
+            }
         }
         #else 
 
