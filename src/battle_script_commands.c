@@ -4979,14 +4979,14 @@ static void Cmd_openpartyscreen(void)
                     }
                     else if (!gSpecialStatuses[gActiveBattler].faintedHasReplacement)
                     {
-                        DebugPrintf("Cmd_openpartyscreen: gActiveBattler %d, PARTY_SIZE %d\n", gActiveBattler, PARTY_SIZE);
+                        // DebugPrintf("Cmd_openpartyscreen: gActiveBattler %d, PARTY_SIZE %d\n", gActiveBattler, PARTY_SIZE);
                         ChooseMonToSendOut(PARTY_SIZE);
                         gSpecialStatuses[gActiveBattler].faintedHasReplacement = TRUE;
                     }
                 }
                 else
                 {
-                    DebugPrintf("Cmd_openpartyscreen: gActiveBattler %d, PARTY_SIZE %d\n", gActiveBattler, PARTY_SIZE);
+                    // DebugPrintf("Cmd_openpartyscreen: gActiveBattler %d, PARTY_SIZE %d\n", gActiveBattler, PARTY_SIZE);
                     BtlController_EmitLinkStandbyMsg(BUFFER_A, LINK_STANDBY_MSG_ONLY, FALSE);
                     MarkBattlerForControllerExec(gActiveBattler);
                 }
@@ -5210,9 +5210,18 @@ static void Cmd_openpartyscreen(void)
             DebugPrintf("Cmd_openpartyscreen: OBSERVEDDATA %d");
             gActiveBattler = battlerId;
             
-            if(gActiveBattler == 0)
+            if(gActiveBattler == PLAYER)
             {
+
                 DumpLegalSwitchBattleScript(gActiveBattler, legalSwitchActionsPlayer);
+                for(int y = 0 ; y < PARTY_SIZE; y++)
+                {
+                    if(legalSwitchActionsPlayer[y] == TRUE)
+                    {
+                        actionDonePlayer = y + 4;
+                        break;
+                    }
+                }
                 stopHandleTurnPlayer = 1;
                 *(gBattleStruct->monToSwitchIntoId + gActiveBattler)  = actionDonePlayer - 4;
                 gBattlerPartyIndexes[gActiveBattler] = actionDonePlayer - 4;

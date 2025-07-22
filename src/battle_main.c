@@ -238,16 +238,15 @@ EWRAM_DATA u16 gBattleMovePower = 0;
 EWRAM_DATA u16 gMoveToLearn = 0;
 EWRAM_DATA u8 gBattleMonForms[MAX_BATTLERS_COUNT] = {0};
 
-
-#ifdef OBSERVED_DATA
-
 #define ID_OFFSET       0
 #define LEVEL_OFFSET   1
 #define MOVE1_OFFSET  2
 #define MOVE2_OFFSET 3
 #define MOVE3_OFFSET 4 
 #define MOVE4_OFFSET 5
-#define HP_OFFSET       6 
+#define HP_OFFSET       6
+
+#ifdef OBSERVED_DATA
 
 // Dump Data
 volatile EWRAM_DATA u32 playerTeam[7 * PARTY_SIZE];
@@ -772,7 +771,7 @@ static void CB2_InitBattleInternal(void)
             86,    10, 5,      5,  5,  5, 100
             };
             u32 _playerTeam[] = {
-            403, 10, 205, 164, 102, 68, 100, 
+            403, 10, 226, 164, 102, 68, 100, 
             190, 10, 39, 173, 210, 129, 100, 
             350, 10, 111, 173, 164, 204, 100, 
             228, 10, 46, 185, 242, 102, 100, 
@@ -800,6 +799,7 @@ static void CB2_InitBattleInternal(void)
                     // Calculate and set the HP based on the percentage
                     hp = (u32)((_enemyTeam[i * 7 + HP_OFFSET] * GetMonData(&gEnemyParty[i], MON_DATA_MAX_HP)) / 100);
                     SetMonData(&gEnemyParty[i], MON_DATA_HP, &hp);
+                    MonRestorePP(&gEnemyParty[i]);
                     
                 }
 
@@ -819,6 +819,7 @@ static void CB2_InitBattleInternal(void)
 
                     hp = (u32)((_playerTeam[i * 7 + HP_OFFSET] * GetMonData(&gPlayerParty[i], MON_DATA_MAX_HP)) / 100);
                     SetMonData(&gPlayerParty[i], MON_DATA_HP, &hp);
+                    MonRestorePP(&gPlayerParty[i]);
                     
                 }   
             }
@@ -870,6 +871,72 @@ static void CB2_InitBattleInternal(void)
             }
         }
         #else 
+
+        DebugPrintf("Should not be here");
+        u32 _enemyTeam[] =  {
+        352,  15, 5, 5, 5,      5, 100, 
+        15,     15, 5,   5,   5,  5, 100, 
+        145,  15, 5,   5, 5,    5, 100, 
+        404, 15, 5, 5, 5,  5, 100,
+        243, 10, 5, 5,   5, 5, 100, 
+        86,    10, 5,      5,  5,  5, 100
+        };
+        u32 _playerTeam[] = {
+        403, 10, 226, 164, 102, 68, 100, 
+        190, 10, 39, 173, 210, 129, 100, 
+        350, 10, 111, 173, 164, 204, 100, 
+        228, 10, 46, 185, 242, 102, 100, 
+        0, 10, 33, 172, 52, 164, 100,
+        0, 10, 29, 38, 164, 73, 100
+        };
+        for(i=0; i < PARTY_SIZE; i++)
+        {
+            u32 hp = 0;
+            if(_enemyTeam[i * 7 + ID_OFFSET] != 0){
+                // DebugPrintf("Creating enemy mon %d, level %d", enemyTeam[i * 7 + ID_OFFSET], enemyTeam[i * 7 + LEVEL_OFFSET]);
+                CreateMon(&gEnemyParty[i], _enemyTeam[i * 7 + ID_OFFSET], _enemyTeam[i * 7 + LEVEL_OFFSET], 
+                USE_RANDOM_IVS, 
+                FALSE,  
+                0,  
+                OT_ID_PLAYER_ID,   // Use player's ID as OT
+                0);
+
+                // Set the moves
+                SetMonData(&gEnemyParty[i], MON_DATA_MOVE1, &_enemyTeam[i * 7 + MOVE1_OFFSET]);
+                SetMonData(&gEnemyParty[i], MON_DATA_MOVE2, &_enemyTeam[i * 7 + MOVE2_OFFSET]);
+                SetMonData(&gEnemyParty[i], MON_DATA_MOVE3, &_enemyTeam[i * 7 + MOVE3_OFFSET]);
+                SetMonData(&gEnemyParty[i], MON_DATA_MOVE4, &_enemyTeam[i * 7 + MOVE4_OFFSET]);
+
+                // Calculate and set the HP based on the percentage
+                hp = (u32)((_enemyTeam[i * 7 + HP_OFFSET] * GetMonData(&gEnemyParty[i], MON_DATA_MAX_HP)) / 100);
+                SetMonData(&gEnemyParty[i], MON_DATA_HP, &hp);
+                MonRestorePP(&gEnemyParty[i]);
+
+                
+            }
+
+            if(_playerTeam[i * 7 + ID_OFFSET] != 0){
+
+                CreateMon(&gPlayerParty[i], _playerTeam[i * 7 + ID_OFFSET], _playerTeam[i * 7 + LEVEL_OFFSET], 
+                    USE_RANDOM_IVS, 
+                    FALSE,  
+                    0,  
+                    OT_ID_PLAYER_ID,   // Use player's ID as OT
+                    0);
+
+                SetMonData(&gPlayerParty[i], MON_DATA_MOVE1, &_playerTeam[i * 7 + MOVE1_OFFSET]);
+                SetMonData(&gPlayerParty[i], MON_DATA_MOVE2, &_playerTeam[i * 7 + MOVE2_OFFSET]);
+                SetMonData(&gPlayerParty[i], MON_DATA_MOVE3, &_playerTeam[i * 7 + MOVE3_OFFSET]);
+                SetMonData(&gPlayerParty[i], MON_DATA_MOVE4, &_playerTeam[i * 7 + MOVE4_OFFSET]);
+
+                hp = (u32)((_playerTeam[i * 7 + HP_OFFSET] * GetMonData(&gPlayerParty[i], MON_DATA_MAX_HP)) / 100);
+                SetMonData(&gPlayerParty[i], MON_DATA_HP, &hp);
+                MonRestorePP(&gPlayerParty[i]);
+
+                
+            }   
+        }
+    
 
         #endif
        
@@ -4900,14 +4967,16 @@ static void HandleTurnActionSelectionState(void)
     {
 
         // DebugPrintf("gActiveBattler %d is in state %d\n",gActiveBattler,gBattleCommunication[gActiveBattler]);
-        // actionDonePlayer = 0;
-        // actionDoneEnemy = 0;
+        actionDonePlayer = 0;
+        actionDoneEnemy = 0;
 
         if (gBattleCommunication[gActiveBattler] == STATE_BEFORE_ACTION_CHOSEN)
         {
             if(gActiveBattler == PLAYER){
-                DumpLegalMoves(0,legalMoveActionsPlayer);
-                DumpLegalMoves(1,legalMoveActionsEnemy);
+                DumpLegalMoves(PLAYER,legalMoveActionsPlayer);
+                DumpLegalMoves(ENEMY,legalMoveActionsEnemy);
+                DumpLegalSwitch(PLAYER,legalSwitchActionsPlayer);
+                DumpLegalSwitch(ENEMY,legalSwitchActionsEnemy);
                 DumpMonData();
                 
                 stopHandleTurn = 1;
@@ -5359,7 +5428,7 @@ static void RunTurnActionsFunctions(void)
     if(idFunc != gCurrentActionFuncId)
     {
         idFunc = gCurrentActionFuncId;
-        DebugPrintf("RunTurnActionsFunctions: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
+        // DebugPrintf("RunTurnActionsFunctions: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
     }   
     *(&gBattleStruct->savedTurnActionNumber) = gCurrentTurnActionNumber;
     sTurnActionsFuncsTable[gCurrentActionFuncId]();
@@ -5720,7 +5789,7 @@ void RunBattleScriptCommands_PopCallbacksStack(void)
     if(idFuncRun != gCurrentActionFuncId)
     {
         idFuncRun = gCurrentActionFuncId;
-        DebugPrintf("RunBattleScriptCommands_PopCallbacksStack: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
+        // DebugPrintf("RunBattleScriptCommands_PopCallbacksStack: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
     }
     if (gCurrentActionFuncId == B_ACTION_TRY_FINISH || gCurrentActionFuncId == B_ACTION_FINISHED)
     {
@@ -5737,7 +5806,7 @@ void RunBattleScriptCommands_PopCallbacksStack(void)
         else if(idFuncRun != gCurrentActionFuncId)
         {
             idFuncRun = gCurrentActionFuncId;
-            DebugPrintf("!gBattleControllerExecFlags PopCallbacksStack: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
+            // DebugPrintf("!gBattleControllerExecFlags PopCallbacksStack: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
         }
     }
 }

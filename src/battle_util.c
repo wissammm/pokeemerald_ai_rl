@@ -643,7 +643,7 @@ void HandleAction_TryFinish(void)
 {
     if (!HandleFaintedMonActions())
     {
-        DebugPrintf("HandleAction_TryFinish: No fainted actions to handle.\n");
+        // DebugPrintf("HandleAction_TryFinish: No fainted actions to handle.\n");
         gBattleStruct->faintedActionsState = 0;
         gCurrentActionFuncId = B_ACTION_FINISHED;
     }
@@ -662,7 +662,7 @@ void HandleAction_NothingIsFainted(void)
 
 void HandleAction_ActionFinished(void)
 {
-    DebugPrintf("HandleAction_ActionFinished: gCurrentTurnActionNumber = %d\n", gCurrentTurnActionNumber);
+    // DebugPrintf("HandleAction_ActionFinished: gCurrentTurnActionNumber = %d\n", gCurrentTurnActionNumber);
     *(gBattleStruct->monToSwitchIntoId + gBattlerByTurnOrder[gCurrentTurnActionNumber]) = PARTY_SIZE;
     gCurrentTurnActionNumber++;
     gCurrentActionFuncId = gActionsByTurnOrder[gCurrentTurnActionNumber];
@@ -1882,9 +1882,10 @@ bool8 HandleWishPerishSongOnTurnEnd(void)
 
 bool8 HandleFaintedMonActions(void)
 {
+    // DebugPrintf("HandleFaintedMonActions");
+
     if (gBattleTypeFlags & BATTLE_TYPE_SAFARI)
     {
-        DebugPrintf("HandleFaintedMonActions: Safari battle, skipping fainted actions.");
         return FALSE;
     }
     do
@@ -1893,7 +1894,6 @@ bool8 HandleFaintedMonActions(void)
         switch (gBattleStruct->faintedActionsState)
         {
         case 0:
-            DebugPrintf("HandleFaintedMonActions: case 0 - Resetting battler id and clearing absent flags if possible switches.");
             gBattleStruct->faintedActionsBattlerId = 0;
             gBattleStruct->faintedActionsState++;
             for (i = 0; i < gBattlersCount; i++)
@@ -1906,7 +1906,6 @@ bool8 HandleFaintedMonActions(void)
             }
             // fall through
         case 1:
-            DebugPrintf("HandleFaintedMonActions: case 1 - Checking for battlers to give EXP.");
             do
             {
                 gBattlerFainted = gBattlerTarget = gBattleStruct->faintedActionsBattlerId;
@@ -1920,77 +1919,61 @@ bool8 HandleFaintedMonActions(void)
                     return TRUE;
                 }
             } while (++gBattleStruct->faintedActionsBattlerId != gBattlersCount);
-            DebugPrintf("  No more battlers to give EXP, moving to state 3.");
             gBattleStruct->faintedActionsState = 3;
             break;
         case 2:
-            DebugPrintf("HandleFaintedMonActions: case 2 - Resetting sent pokes for opponent and incrementing battler id.");
             OpponentSwitchInResetSentPokesToOpponentValue(gBattlerFainted);
             if (++gBattleStruct->faintedActionsBattlerId == gBattlersCount)
             {
-                DebugPrintf("  All battlers processed for EXP, moving to state 3.");
                 gBattleStruct->faintedActionsState = 3;
             }
             else
             {
-                DebugPrintf("  More battlers to process for EXP, returning to state 1.");
                 gBattleStruct->faintedActionsState = 1;
             }
             break;
         case 3:
-            DebugPrintf("HandleFaintedMonActions: case 3 - Resetting battler id for fainted handling.");
             gBattleStruct->faintedActionsBattlerId = 0;
             gBattleStruct->faintedActionsState++;
             // fall through
         case 4:
-            DebugPrintf("HandleFaintedMonActions: case 4 - Handling fainted battlers (switch/send out).");
             do
             {
                 gBattlerFainted = gBattlerTarget = gBattleStruct->faintedActionsBattlerId;
                 if (gBattleMons[gBattleStruct->faintedActionsBattlerId].hp == 0
                  && !(gAbsentBattlerFlags & gBitTable[gBattleStruct->faintedActionsBattlerId]))
                 {
-                    DebugPrintf("  Battler %d: Fainted and not absent, executing BattleScript_HandleFaintedMon.", gBattleStruct->faintedActionsBattlerId);
                     BattleScriptExecute(BattleScript_HandleFaintedMon);
                     gBattleStruct->faintedActionsState = 5;
                     return TRUE;
                 }
             } while (++gBattleStruct->faintedActionsBattlerId != gBattlersCount);
-            DebugPrintf("  No more battlers to handle for faint, moving to state 6.");
             gBattleStruct->faintedActionsState = 6;
             break;
         case 5:
-            DebugPrintf("HandleFaintedMonActions: case 5 - Incrementing battler id for fainted handling.");
             if (++gBattleStruct->faintedActionsBattlerId == gBattlersCount)
             {
-                DebugPrintf("  All battlers processed for fainted handling, moving to state 6.");
                 gBattleStruct->faintedActionsState = 6;
             }
             else
             {
-                DebugPrintf("  More battlers to process for fainted handling, returning to state 4.");
                 gBattleStruct->faintedActionsState = 4;
             }
             break;
         case 6:
-            DebugPrintf("HandleFaintedMonActions: case 6 - Checking for ability/item effects (Intimidate, Trace, Forecast).");
             if (AbilityBattleEffects(ABILITYEFFECT_INTIMIDATE1, 0, 0, 0, 0)
              || AbilityBattleEffects(ABILITYEFFECT_TRACE, 0, 0, 0, 0)
              || ItemBattleEffects(ITEMEFFECT_NORMAL, 0, TRUE)
              || AbilityBattleEffects(ABILITYEFFECT_FORECAST, 0, 0, 0, 0))
             {
-                DebugPrintf("  Ability or item effect triggered, returning TRUE.");
                 return TRUE;
             }
-            DebugPrintf("  No ability/item effect triggered, moving to FAINTED_ACTIONS_MAX_CASE.");
             gBattleStruct->faintedActionsState++;
             break;
         case FAINTED_ACTIONS_MAX_CASE:
-            DebugPrintf("HandleFaintedMonActions: FAINTED_ACTIONS_MAX_CASE - Done.");
             break;
         }
     } while (gBattleStruct->faintedActionsState != FAINTED_ACTIONS_MAX_CASE);
-    DebugPrintf("HandleFaintedMonActions: All cases processed, returning FALSE.");
     return FALSE;
 }
 
@@ -4110,7 +4093,7 @@ void HandleAction_RunBattleScript(void) // identical to RunBattleScriptCommands
         u8 currCmd = *gBattlescriptCurrInstr;
         if (currCmd != lastCmd)
         {
-            DebugPrintf("RunBattleScript: Command %02X = %s", currCmd, GetBattleScriptCommandName(currCmd));
+            // DebugPrintf("RunBattleScript: Command %02X = %s", currCmd, GetBattleScriptCommandName(currCmd));
             lastCmd = currCmd;
         }
         gBattleScriptingCommandsTable[currCmd]();
@@ -4119,12 +4102,12 @@ void HandleAction_RunBattleScript(void) // identical to RunBattleScriptCommands
     {
         if (*gBattlescriptCurrInstr == 0x2E)
         {
-            DebugPrintf("Infinite loop: Cmd_setbyte detected!");
+            // DebugPrintf("Infinite loop: Cmd_setbyte detected!");
             // while (1);
         }
         else if (*gBattlescriptCurrInstr == 0x03)
         {
-            DebugPrintf("Infinite loop: Cmd_ppreduce detected!");
+            // DebugPrintf("Infinite loop: Cmd_ppreduce detected!");
             // while (1);
         }
         // DebugPrintf("RunBattleScript: Command  %02X (wainting)", *gBattlescriptCurrInstr);

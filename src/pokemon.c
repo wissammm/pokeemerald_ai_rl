@@ -6595,7 +6595,6 @@ void MonRestorePP(struct Pokemon *mon)
 void BoxMonRestorePP(struct BoxPokemon *boxMon)
 {
     int i;
-
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
         if (GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, 0))
