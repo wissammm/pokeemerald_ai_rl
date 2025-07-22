@@ -33,9 +33,9 @@ static void SerialIntr(void);
 static void IntrDummy(void);
 
 #ifdef OBSERVED_DATA
-DUMP_DATA u32 testBuffer = 3;
-DUMP_DATA u32 listTestBuffer[42];
-DUMP_DATA u16 stopTestReadWrite = 0;
+EWRAM_DATA u32 testBuffer = 3;
+EWRAM_DATA u32 listTestBuffer[42];
+EWRAM_DATA u16 stopTestReadWrite = 0;
 #endif
 
 const u8 gGameVersion = GAME_VERSION;

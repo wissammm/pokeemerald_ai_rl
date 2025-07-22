@@ -77,6 +77,7 @@ static const u8 sGoNearCounterToEscapeFactor[] = {4, 4, 4, 4};
 
 void HandleAction_UseMove(void)
 {
+    // DebugPrintf("HandleAction_UseMove: gCurrentTurnActionNumber = %d", gCurrentTurnActionNumber);
     u8 side;
     u8 var = 4;
 
@@ -85,6 +86,7 @@ void HandleAction_UseMove(void)
     if (*(&gBattleStruct->absentBattlerFlags) & gBitTable[gBattlerAttacker])
     {
         gCurrentActionFuncId = B_ACTION_FINISHED;
+        DebugPrintf("HandleAction_UseMove: gBattlerAttacker %d is absent, skipping action.", gBattlerAttacker);
         return;
     }
 
@@ -289,6 +291,8 @@ void HandleAction_UseMove(void)
         BattleArena_AddMindPoints(gBattlerAttacker);
 
     gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
+    DebugPrintf("HandleAction_UseMove: gBattlerAttacker = %d, gBattlerTarget = %d, gCurrentMove = %d",
+               gBattlerAttacker, gBattlerTarget, gCurrentMove);
 }
 
 void HandleAction_Switch(void)
@@ -639,6 +643,7 @@ void HandleAction_TryFinish(void)
 {
     if (!HandleFaintedMonActions())
     {
+        DebugPrintf("HandleAction_TryFinish: No fainted actions to handle.\n");
         gBattleStruct->faintedActionsState = 0;
         gCurrentActionFuncId = B_ACTION_FINISHED;
     }
@@ -657,6 +662,7 @@ void HandleAction_NothingIsFainted(void)
 
 void HandleAction_ActionFinished(void)
 {
+    DebugPrintf("HandleAction_ActionFinished: gCurrentTurnActionNumber = %d\n", gCurrentTurnActionNumber);
     *(gBattleStruct->monToSwitchIntoId + gBattlerByTurnOrder[gCurrentTurnActionNumber]) = PARTY_SIZE;
     gCurrentTurnActionNumber++;
     gCurrentActionFuncId = gActionsByTurnOrder[gCurrentTurnActionNumber];
@@ -1877,22 +1883,30 @@ bool8 HandleWishPerishSongOnTurnEnd(void)
 bool8 HandleFaintedMonActions(void)
 {
     if (gBattleTypeFlags & BATTLE_TYPE_SAFARI)
+    {
+        DebugPrintf("HandleFaintedMonActions: Safari battle, skipping fainted actions.");
         return FALSE;
+    }
     do
     {
         s32 i;
         switch (gBattleStruct->faintedActionsState)
         {
         case 0:
+            DebugPrintf("HandleFaintedMonActions: case 0 - Resetting battler id and clearing absent flags if possible switches.");
             gBattleStruct->faintedActionsBattlerId = 0;
             gBattleStruct->faintedActionsState++;
             for (i = 0; i < gBattlersCount; i++)
             {
                 if (gAbsentBattlerFlags & gBitTable[i] && !HasNoMonsToSwitch(i, PARTY_SIZE, PARTY_SIZE))
+                {
+                    DebugPrintf("  Battler %d: was absent but has mons to switch, clearing absent flag.", i);
                     gAbsentBattlerFlags &= ~(gBitTable[i]);
+                }
             }
             // fall through
         case 1:
+            DebugPrintf("HandleFaintedMonActions: case 1 - Checking for battlers to give EXP.");
             do
             {
                 gBattlerFainted = gBattlerTarget = gBattleStruct->faintedActionsBattlerId;
@@ -1900,56 +1914,83 @@ bool8 HandleFaintedMonActions(void)
                  && !(gBattleStruct->givenExpMons & gBitTable[gBattlerPartyIndexes[gBattleStruct->faintedActionsBattlerId]])
                  && !(gAbsentBattlerFlags & gBitTable[gBattleStruct->faintedActionsBattlerId]))
                 {
+                    DebugPrintf("  Battler %d: Fainted and not given EXP, executing BattleScript_GiveExp.", gBattleStruct->faintedActionsBattlerId);
                     BattleScriptExecute(BattleScript_GiveExp);
                     gBattleStruct->faintedActionsState = 2;
                     return TRUE;
                 }
             } while (++gBattleStruct->faintedActionsBattlerId != gBattlersCount);
+            DebugPrintf("  No more battlers to give EXP, moving to state 3.");
             gBattleStruct->faintedActionsState = 3;
             break;
         case 2:
+            DebugPrintf("HandleFaintedMonActions: case 2 - Resetting sent pokes for opponent and incrementing battler id.");
             OpponentSwitchInResetSentPokesToOpponentValue(gBattlerFainted);
             if (++gBattleStruct->faintedActionsBattlerId == gBattlersCount)
+            {
+                DebugPrintf("  All battlers processed for EXP, moving to state 3.");
                 gBattleStruct->faintedActionsState = 3;
+            }
             else
+            {
+                DebugPrintf("  More battlers to process for EXP, returning to state 1.");
                 gBattleStruct->faintedActionsState = 1;
+            }
             break;
         case 3:
+            DebugPrintf("HandleFaintedMonActions: case 3 - Resetting battler id for fainted handling.");
             gBattleStruct->faintedActionsBattlerId = 0;
             gBattleStruct->faintedActionsState++;
             // fall through
         case 4:
+            DebugPrintf("HandleFaintedMonActions: case 4 - Handling fainted battlers (switch/send out).");
             do
             {
                 gBattlerFainted = gBattlerTarget = gBattleStruct->faintedActionsBattlerId;
                 if (gBattleMons[gBattleStruct->faintedActionsBattlerId].hp == 0
                  && !(gAbsentBattlerFlags & gBitTable[gBattleStruct->faintedActionsBattlerId]))
                 {
+                    DebugPrintf("  Battler %d: Fainted and not absent, executing BattleScript_HandleFaintedMon.", gBattleStruct->faintedActionsBattlerId);
                     BattleScriptExecute(BattleScript_HandleFaintedMon);
                     gBattleStruct->faintedActionsState = 5;
                     return TRUE;
                 }
             } while (++gBattleStruct->faintedActionsBattlerId != gBattlersCount);
+            DebugPrintf("  No more battlers to handle for faint, moving to state 6.");
             gBattleStruct->faintedActionsState = 6;
             break;
         case 5:
+            DebugPrintf("HandleFaintedMonActions: case 5 - Incrementing battler id for fainted handling.");
             if (++gBattleStruct->faintedActionsBattlerId == gBattlersCount)
+            {
+                DebugPrintf("  All battlers processed for fainted handling, moving to state 6.");
                 gBattleStruct->faintedActionsState = 6;
+            }
             else
+            {
+                DebugPrintf("  More battlers to process for fainted handling, returning to state 4.");
                 gBattleStruct->faintedActionsState = 4;
+            }
             break;
         case 6:
+            DebugPrintf("HandleFaintedMonActions: case 6 - Checking for ability/item effects (Intimidate, Trace, Forecast).");
             if (AbilityBattleEffects(ABILITYEFFECT_INTIMIDATE1, 0, 0, 0, 0)
              || AbilityBattleEffects(ABILITYEFFECT_TRACE, 0, 0, 0, 0)
              || ItemBattleEffects(ITEMEFFECT_NORMAL, 0, TRUE)
              || AbilityBattleEffects(ABILITYEFFECT_FORECAST, 0, 0, 0, 0))
+            {
+                DebugPrintf("  Ability or item effect triggered, returning TRUE.");
                 return TRUE;
+            }
+            DebugPrintf("  No ability/item effect triggered, moving to FAINTED_ACTIONS_MAX_CASE.");
             gBattleStruct->faintedActionsState++;
             break;
         case FAINTED_ACTIONS_MAX_CASE:
+            DebugPrintf("HandleFaintedMonActions: FAINTED_ACTIONS_MAX_CASE - Done.");
             break;
         }
     } while (gBattleStruct->faintedActionsState != FAINTED_ACTIONS_MAX_CASE);
+    DebugPrintf("HandleFaintedMonActions: All cases processed, returning FALSE.");
     return FALSE;
 }
 
@@ -3185,6 +3226,7 @@ void BattleScriptExecute(const u8 *BS_ptr)
 {
     gBattlescriptCurrInstr = BS_ptr;
     gBattleResources->battleCallbackStack->function[gBattleResources->battleCallbackStack->size++] = gBattleMainFunc;
+    // DebugPrintf("BattleScriptExecute: %s", BS_ptr);
     gBattleMainFunc = RunBattleScriptCommands_PopCallbacksStack;
     gCurrentActionFuncId = 0;
 }
@@ -3802,10 +3844,291 @@ void ClearFuryCutterDestinyBondGrudge(u8 battlerId)
     gStatuses3[battlerId] &= ~STATUS3_GRUDGE;
 }
 
+static const char *GetBattleScriptCommandName(u8 cmd)
+{
+    switch (cmd)
+    {
+        case 0x00: return "Cmd_attackcanceler";
+        case 0x01: return "Cmd_accuracycheck";
+        case 0x02: return "Cmd_attackstring";
+        case 0x03: return "Cmd_ppreduce";
+        case 0x04: return "Cmd_critcalc";
+        case 0x05: return "Cmd_damagecalc";
+        case 0x06: return "Cmd_typecalc";
+        case 0x07: return "Cmd_adjustnormaldamage";
+        case 0x08: return "Cmd_adjustnormaldamage2";
+        case 0x09: return "Cmd_attackanimation";
+        case 0x0A: return "Cmd_waitanimation";
+        case 0x0B: return "Cmd_healthbarupdate";
+        case 0x0C: return "Cmd_datahpupdate";
+        case 0x0D: return "Cmd_critmessage";
+        case 0x0E: return "Cmd_effectivenesssound";
+        case 0x0F: return "Cmd_resultmessage";
+        case 0x10: return "Cmd_printstring";
+        case 0x11: return "Cmd_printselectionstring";
+        case 0x12: return "Cmd_waitmessage";
+        case 0x13: return "Cmd_printfromtable";
+        case 0x14: return "Cmd_printselectionstringfromtable";
+        case 0x15: return "Cmd_seteffectwithchance";
+        case 0x16: return "Cmd_seteffectprimary";
+        case 0x17: return "Cmd_seteffectsecondary";
+        case 0x18: return "Cmd_clearstatusfromeffect";
+        case 0x19: return "Cmd_tryfaintmon";
+        case 0x1A: return "Cmd_dofaintanimation";
+        case 0x1B: return "Cmd_cleareffectsonfaint";
+        case 0x1C: return "Cmd_jumpifstatus";
+        case 0x1D: return "Cmd_jumpifstatus2";
+        case 0x1E: return "Cmd_jumpifability";
+        case 0x1F: return "Cmd_jumpifsideaffecting";
+        case 0x20: return "Cmd_jumpifstat";
+        case 0x21: return "Cmd_jumpifstatus3condition";
+        case 0x22: return "Cmd_jumpiftype";
+        case 0x23: return "Cmd_getexp";
+        case 0x24: return "Cmd_checkteamslost";
+        case 0x25: return "Cmd_movevaluescleanup";
+        case 0x26: return "Cmd_setmultihit";
+        case 0x27: return "Cmd_decrementmultihit";
+        case 0x28: return "Cmd_goto";
+        case 0x29: return "Cmd_jumpifbyte";
+        case 0x2A: return "Cmd_jumpifhalfword";
+        case 0x2B: return "Cmd_jumpifword";
+        case 0x2C: return "Cmd_jumpifarrayequal";
+        case 0x2D: return "Cmd_jumpifarraynotequal";
+        case 0x2E: return "Cmd_setbyte";
+        case 0x2F: return "Cmd_addbyte";
+        case 0x30: return "Cmd_subbyte";
+        case 0x31: return "Cmd_copyarray";
+        case 0x32: return "Cmd_copyarraywithindex";
+        case 0x33: return "Cmd_orbyte";
+        case 0x34: return "Cmd_orhalfword";
+        case 0x35: return "Cmd_orword";
+        case 0x36: return "Cmd_bicbyte";
+        case 0x37: return "Cmd_bichalfword";
+        case 0x38: return "Cmd_bicword";
+        case 0x39: return "Cmd_pause";
+        case 0x3A: return "Cmd_waitstate";
+        case 0x3B: return "Cmd_healthbar_update";
+        case 0x3C: return "Cmd_return";
+        case 0x3D: return "Cmd_end";
+        case 0x3E: return "Cmd_end2";
+        case 0x3F: return "Cmd_end3";
+        case 0x40: return "Cmd_jumpifaffectedbyprotect";
+        case 0x41: return "Cmd_call";
+        case 0x42: return "Cmd_jumpiftype2";
+        case 0x43: return "Cmd_jumpifabilitypresent";
+        case 0x44: return "Cmd_endselectionscript";
+        case 0x45: return "Cmd_playanimation";
+        case 0x46: return "Cmd_playanimation_var";
+        case 0x47: return "Cmd_setgraphicalstatchangevalues";
+        case 0x48: return "Cmd_playstatchangeanimation";
+        case 0x49: return "Cmd_moveend";
+        case 0x4A: return "Cmd_typecalc2";
+        case 0x4B: return "Cmd_returnatktoball";
+        case 0x4C: return "Cmd_getswitchedmondata";
+        case 0x4D: return "Cmd_switchindataupdate";
+        case 0x4E: return "Cmd_switchinanim";
+        case 0x4F: return "Cmd_jumpifcantswitch";
+        case 0x50: return "Cmd_openpartyscreen";
+        case 0x51: return "Cmd_switchhandleorder";
+        case 0x52: return "Cmd_switchineffects";
+        case 0x53: return "Cmd_trainerslidein";
+        case 0x54: return "Cmd_playse";
+        case 0x55: return "Cmd_fanfare";
+        case 0x56: return "Cmd_playfaintcry";
+        case 0x57: return "Cmd_endlinkbattle";
+        case 0x58: return "Cmd_returntoball";
+        case 0x59: return "Cmd_handlelearnnewmove";
+        case 0x5A: return "Cmd_yesnoboxlearnmove";
+        case 0x5B: return "Cmd_yesnoboxstoplearningmove";
+        case 0x5C: return "Cmd_hitanimation";
+        case 0x5D: return "Cmd_getmoneyreward";
+        case 0x5E: return "Cmd_updatebattlermoves";
+        case 0x5F: return "Cmd_swapattackerwithtarget";
+        case 0x60: return "Cmd_incrementgamestat";
+        case 0x61: return "Cmd_drawpartystatussummary";
+        case 0x62: return "Cmd_hidepartystatussummary";
+        case 0x63: return "Cmd_jumptocalledmove";
+        case 0x64: return "Cmd_statusanimation";
+        case 0x65: return "Cmd_status2animation";
+        case 0x66: return "Cmd_chosenstatusanimation";
+        case 0x67: return "Cmd_yesnobox";
+        case 0x68: return "Cmd_cancelallactions";
+        case 0x69: return "Cmd_adjustsetdamage";
+        case 0x6A: return "Cmd_removeitem";
+        case 0x6B: return "Cmd_atknameinbuff1";
+        case 0x6C: return "Cmd_drawlvlupbox";
+        case 0x6D: return "Cmd_resetsentmonsvalue";
+        case 0x6E: return "Cmd_setatktoplayer0";
+        case 0x6F: return "Cmd_makevisible";
+        case 0x70: return "Cmd_recordlastability";
+        case 0x71: return "Cmd_buffermovetolearn";
+        case 0x72: return "Cmd_jumpifplayerran";
+        case 0x73: return "Cmd_hpthresholds";
+        case 0x74: return "Cmd_hpthresholds2";
+        case 0x75: return "Cmd_useitemonopponent";
+        case 0x76: return "Cmd_various";
+        case 0x77: return "Cmd_setprotectlike";
+        case 0x78: return "Cmd_tryexplosion";
+        case 0x79: return "Cmd_setatkhptozero";
+        case 0x7A: return "Cmd_jumpifnexttargetvalid";
+        case 0x7B: return "Cmd_tryhealhalfhealth";
+        case 0x7C: return "Cmd_trymirrormove";
+        case 0x7D: return "Cmd_setrain";
+        case 0x7E: return "Cmd_setreflect";
+        case 0x7F: return "Cmd_setseeded";
+        case 0x80: return "Cmd_manipulatedamage";
+        case 0x81: return "Cmd_trysetrest";
+        case 0x82: return "Cmd_jumpifnotfirstturn";
+        case 0x83: return "Cmd_nop";
+        case 0x84: return "Cmd_jumpifcantmakeasleep";
+        case 0x85: return "Cmd_stockpile";
+        case 0x86: return "Cmd_stockpiletobasedamage";
+        case 0x87: return "Cmd_stockpiletohpheal";
+        case 0x88: return "Cmd_negativedamage";
+        case 0x89: return "Cmd_statbuffchange";
+        case 0x8A: return "Cmd_normalisebuffs";
+        case 0x8B: return "Cmd_setbide";
+        case 0x8C: return "Cmd_confuseifrepeatingattackends";
+        case 0x8D: return "Cmd_setmultihitcounter";
+        case 0x8E: return "Cmd_initmultihitstring";
+        case 0x8F: return "Cmd_forcerandomswitch";
+        case 0x90: return "Cmd_tryconversiontypechange";
+        case 0x91: return "Cmd_givepaydaymoney";
+        case 0x92: return "Cmd_setlightscreen";
+        case 0x93: return "Cmd_tryKO";
+        case 0x94: return "Cmd_damagetohalftargethp";
+        case 0x95: return "Cmd_setsandstorm";
+        case 0x96: return "Cmd_weatherdamage";
+        case 0x97: return "Cmd_tryinfatuating";
+        case 0x98: return "Cmd_updatestatusicon";
+        case 0x99: return "Cmd_setmist";
+        case 0x9A: return "Cmd_setfocusenergy";
+        case 0x9B: return "Cmd_transformdataexecution";
+        case 0x9C: return "Cmd_setsubstitute";
+        case 0x9D: return "Cmd_mimicattackcopy";
+        case 0x9E: return "Cmd_metronome";
+        case 0x9F: return "Cmd_dmgtolevel";
+        case 0xA0: return "Cmd_psywavedamageeffect";
+        case 0xA1: return "Cmd_counterdamagecalculator";
+        case 0xA2: return "Cmd_mirrorcoatdamagecalculator";
+        case 0xA3: return "Cmd_disablelastusedattack";
+        case 0xA4: return "Cmd_trysetencore";
+        case 0xA5: return "Cmd_painsplitdmgcalc";
+        case 0xA6: return "Cmd_settypetorandomresistance";
+        case 0xA7: return "Cmd_setalwayshitflag";
+        case 0xA8: return "Cmd_copymovepermanently";
+        case 0xA9: return "Cmd_trychoosesleeptalkmove";
+        case 0xAA: return "Cmd_setdestinybond";
+        case 0xAB: return "Cmd_trysetdestinybondtohappen";
+        case 0xAC: return "Cmd_remaininghptopower";
+        case 0xAD: return "Cmd_tryspiteppreduce";
+        case 0xAE: return "Cmd_healpartystatus";
+        case 0xAF: return "Cmd_cursetarget";
+        case 0xB0: return "Cmd_trysetspikes";
+        case 0xB1: return "Cmd_setforesight";
+        case 0xB2: return "Cmd_trysetperishsong";
+        case 0xB3: return "Cmd_rolloutdamagecalculation";
+        case 0xB4: return "Cmd_jumpifconfusedandstatmaxed";
+        case 0xB5: return "Cmd_furycuttercalc";
+        case 0xB6: return "Cmd_friendshiptodamagecalculation";
+        case 0xB7: return "Cmd_presentdamagecalculation";
+        case 0xB8: return "Cmd_setsafeguard";
+        case 0xB9: return "Cmd_magnitudedamagecalculation";
+        case 0xBA: return "Cmd_jumpifnopursuitswitchdmg";
+        case 0xBB: return "Cmd_setsunny";
+        case 0xBC: return "Cmd_maxattackhalvehp";
+        case 0xBD: return "Cmd_copyfoestats";
+        case 0xBE: return "Cmd_rapidspinfree";
+        case 0xBF: return "Cmd_setdefensecurlbit";
+        case 0xC0: return "Cmd_recoverbasedonsunlight";
+        case 0xC1: return "Cmd_hiddenpowercalc";
+        case 0xC2: return "Cmd_selectfirstvalidtarget";
+        case 0xC3: return "Cmd_trysetfutureattack";
+        case 0xC4: return "Cmd_trydobeatup";
+        case 0xC5: return "Cmd_setsemiinvulnerablebit";
+        case 0xC6: return "Cmd_clearsemiinvulnerablebit";
+        case 0xC7: return "Cmd_setminimize";
+        case 0xC8: return "Cmd_sethail";
+        case 0xC9: return "Cmd_trymemento";
+        case 0xCA: return "Cmd_setforcedtarget";
+        case 0xCB: return "Cmd_setcharge";
+        case 0xCC: return "Cmd_callterrainattack";
+        case 0xCD: return "Cmd_cureifburnedparalysedorpoisoned";
+        case 0xCE: return "Cmd_settorment";
+        case 0xCF: return "Cmd_jumpifnodamage";
+        case 0xD0: return "Cmd_settaunt";
+        case 0xD1: return "Cmd_trysethelpinghand";
+        case 0xD2: return "Cmd_tryswapitems";
+        case 0xD3: return "Cmd_trycopyability";
+        case 0xD4: return "Cmd_trywish";
+        case 0xD5: return "Cmd_trysetroots";
+        case 0xD6: return "Cmd_doubledamagedealtifdamaged";
+        case 0xD7: return "Cmd_setyawn";
+        case 0xD8: return "Cmd_setdamagetohealthdifference";
+        case 0xD9: return "Cmd_scaledamagebyhealthratio";
+        case 0xDA: return "Cmd_tryswapabilities";
+        case 0xDB: return "Cmd_tryimprison";
+        case 0xDC: return "Cmd_trysetgrudge";
+        case 0xDD: return "Cmd_weightdamagecalculation";
+        case 0xDE: return "Cmd_assistattackselect";
+        case 0xDF: return "Cmd_trysetmagiccoat";
+        case 0xE0: return "Cmd_trysetsnatch";
+        case 0xE1: return "Cmd_trygetintimidatetarget";
+        case 0xE2: return "Cmd_switchoutabilities";
+        case 0xE3: return "Cmd_jumpifhasnohp";
+        case 0xE4: return "Cmd_getsecretpowereffect";
+        case 0xE5: return "Cmd_pickup";
+        case 0xE6: return "Cmd_docastformchangeanimation";
+        case 0xE7: return "Cmd_trycastformdatachange";
+        case 0xE8: return "Cmd_settypebasedhalvers";
+        case 0xE9: return "Cmd_setweatherballtype";
+        case 0xEA: return "Cmd_tryrecycleitem";
+        case 0xEB: return "Cmd_settypetoterrain";
+        case 0xEC: return "Cmd_pursuitdoubles";
+        case 0xED: return "Cmd_snatchsetbattlers";
+        case 0xEE: return "Cmd_removelightscreenreflect";
+        case 0xEF: return "Cmd_handleballthrow";
+        case 0xF0: return "Cmd_givecaughtmon";
+        case 0xF1: return "Cmd_trysetcaughtmondexflags";
+        case 0xF2: return "Cmd_displaydexinfo";
+        case 0xF3: return "Cmd_trygivecaughtmonnick";
+        case 0xF4: return "Cmd_subattackerhpbydmg";
+        case 0xF5: return "Cmd_removeattackerstatus1";
+        case 0xF6: return "Cmd_finishaction";
+        case 0xF7: return "Cmd_finishturn";
+        case 0xF8: return "Cmd_trainerslideout";
+        default:   return "Unknown";
+    }
+}
+
+EWRAM_DATA int lastCmd = -1;
 void HandleAction_RunBattleScript(void) // identical to RunBattleScriptCommands
 {
+
     if (gBattleControllerExecFlags == 0)
-        gBattleScriptingCommandsTable[*gBattlescriptCurrInstr]();
+    {
+        u8 currCmd = *gBattlescriptCurrInstr;
+        if (currCmd != lastCmd)
+        {
+            DebugPrintf("RunBattleScript: Command %02X = %s", currCmd, GetBattleScriptCommandName(currCmd));
+            lastCmd = currCmd;
+        }
+        gBattleScriptingCommandsTable[currCmd]();
+    }
+    else
+    {
+        if (*gBattlescriptCurrInstr == 0x2E)
+        {
+            DebugPrintf("Infinite loop: Cmd_setbyte detected!");
+            // while (1);
+        }
+        else if (*gBattlescriptCurrInstr == 0x03)
+        {
+            DebugPrintf("Infinite loop: Cmd_ppreduce detected!");
+            // while (1);
+        }
+        // DebugPrintf("RunBattleScript: Command  %02X (wainting)", *gBattlescriptCurrInstr);
+    }
 }
 
 u8 GetMoveTarget(u16 move, u8 setTarget)

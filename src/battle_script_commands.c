@@ -3250,14 +3250,20 @@ static void Cmd_getexp(void)
     u8 holdEffect;
     s32 sentIn;
     s32 viaExpShare = 0;
+
     u16 *exp = &gBattleStruct->expValue;
 
+    #ifdef OBSERVED_DATA
+    *exp = 0;
+    gExpShareExp = 0;
+    #endif
     gBattlerFainted = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
     sentIn = gSentPokesToOpponent[(gBattlerFainted & 2) >> 1];
-
+    
     switch (gBattleScripting.getexpState)
     {
     case 0: // check if should receive exp at all
+        DebugPrintf("GetExp case 0 ");
         if (GetBattlerSide(gBattlerFainted) != B_SIDE_OPPONENT || (gBattleTypeFlags &
              (BATTLE_TYPE_LINK
               | BATTLE_TYPE_RECORDED_LINK
@@ -3277,6 +3283,8 @@ static void Cmd_getexp(void)
         break;
     case 1: // calculate experience points to redistribute
         {
+            DebugPrintf("GetExp case 1 ");
+
             u16 calculatedExp;
             s32 viaSentIn;
 
@@ -3317,6 +3325,10 @@ static void Cmd_getexp(void)
                     *exp = 1;
                 gExpShareExp = 0;
             }
+            #ifdef OBSERVED_DATA
+            *exp = 0;
+            gExpShareExp = 0;
+            #endif
 
             gBattleScripting.getexpState++;
             gBattleStruct->expGetterMonId = 0;
@@ -3324,6 +3336,8 @@ static void Cmd_getexp(void)
         }
         // fall through
     case 2: // set exp value to the poke in expgetter_id and print message
+        DebugPrintf("GetExp case 2 ");
+
         if (gBattleControllerExecFlags == 0)
         {
             item = GetMonData(&gPlayerParty[gBattleStruct->expGetterMonId], MON_DATA_HELD_ITEM);
@@ -3419,6 +3433,8 @@ static void Cmd_getexp(void)
         }
         break;
     case 3: // Set stats and give exp
+        DebugPrintf("GetExp case 3 ");
+        
         if (gBattleControllerExecFlags == 0)
         {
             gBattleBufferB[gBattleStruct->expGetterBattlerId][0] = 0;
@@ -3439,6 +3455,8 @@ static void Cmd_getexp(void)
         }
         break;
     case 4: // lvl up if necessary
+        DebugPrintf("GetExp case 4 ");
+
         if (gBattleControllerExecFlags == 0)
         {
             gActiveBattler = gBattleStruct->expGetterBattlerId;
@@ -3497,6 +3515,8 @@ static void Cmd_getexp(void)
         }
         break;
     case 5: // looper increment
+        DebugPrintf("GetExp case 5 ");
+
         if (gBattleMoveDamage) // there is exp to give, goto case 3 that gives exp
         {
             gBattleScripting.getexpState = 3;
@@ -3511,6 +3531,8 @@ static void Cmd_getexp(void)
         }
         break;
     case 6: // increment instruction
+        DebugPrintf("GetExp case 6 ");
+        
         if (gBattleControllerExecFlags == 0)
         {
             // not sure why gf clears the item and ability here
@@ -5185,7 +5207,7 @@ static void Cmd_openpartyscreen(void)
            
             #ifdef OBSERVED_DATA
             // Auto-select the first valid Pokémon to switch in
-            DebugPrintf("Cmd_openpartyscreen: OBSERVEDDATA %d\n");
+            DebugPrintf("Cmd_openpartyscreen: OBSERVEDDATA %d");
             gActiveBattler = battlerId;
             
             if(gActiveBattler == 0)
@@ -5209,7 +5231,11 @@ static void Cmd_openpartyscreen(void)
             gSpecialStatuses[gActiveBattler].faintedHasReplacement = TRUE;
             BtlController_EmitChosenMonReturnValue(BUFFER_B,*(gBattleStruct->monToSwitchIntoId + gActiveBattler), gBattleBufferB[gActiveBattler]);
             gBattlescriptCurrInstr += 6;
+            gActiveBattler = GetBattlerAtPosition(BATTLE_OPPOSITE(GetBattlerPosition(battlerId)));
+            if (gAbsentBattlerFlags & gBitTable[gActiveBattler])
+                gActiveBattler ^= BIT_FLANK;
             
+            DebugPrintf("End of Cmd_openpartyscreen: gActiveBattler %d", gActiveBattler);
             #else
             gActiveBattler = battlerId;
             *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
@@ -5319,7 +5345,8 @@ static void Cmd_switchhandleorder(void)
 
         PREPARE_SPECIES_BUFFER(gBattleTextBuff1, gBattleMons[gBattlerAttacker].species)
         PREPARE_MON_NICK_BUFFER(gBattleTextBuff2, gActiveBattler, gBattleBufferB[gActiveBattler][1])
-
+        DebugPrintf("end of Cmd_switchhandleorder: gActiveBattler %d, monToSwitchIntoId %d\n", gActiveBattler, *(gBattleStruct->monToSwitchIntoId + gActiveBattler));
+        gBattleControllerExecFlags = 0;
         break;
     }
 
@@ -5916,6 +5943,15 @@ static void Cmd_chosenstatusanimation(void)
 
 static void Cmd_yesnobox(void)
 {
+    #ifdef OBSERVED_DATA
+    if (gBattleCommunication[0] == 1)
+    {
+        PlaySE(SE_SELECT);
+        HandleBattleWindow(YESNOBOX_X_Y, WINDOW_CLEAR);
+        gBattlescriptCurrInstr++;
+        return;
+    }
+    #endif
     switch (gBattleCommunication[0])
     {
     case 0:

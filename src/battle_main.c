@@ -3202,14 +3202,48 @@ void BeginBattleIntro(void)
     gBattleMainFunc = BattleIntroGetMonsData;
 }
 
+
+const char *GetBattleMainFuncName(void (*func)(void)) {
+    if (func == BattleIntroGetMonsData) return "BattleIntroGetMonsData";
+    if (func == BattleIntroPrepareBackgroundSlide) return "BattleIntroPrepareBackgroundSlide";
+    if (func == BattleIntroDrawTrainersOrMonsSprites) return "BattleIntroDrawTrainersOrMonsSprites";
+    if (func == BattleIntroDrawPartySummaryScreens) return "BattleIntroDrawPartySummaryScreens";
+    if (func == BattleIntroPrintTrainerWantsToBattle) return "BattleIntroPrintTrainerWantsToBattle";
+    if (func == BattleIntroPrintWildMonAttacked) return "BattleIntroPrintWildMonAttacked";
+    if (func == BattleIntroPrintOpponentSendsOut) return "BattleIntroPrintOpponentSendsOut";
+    if (func == BattleIntroOpponent1SendsOutMonAnimation) return "BattleIntroOpponent1SendsOutMonAnimation";
+    if (func == BattleIntroOpponent2SendsOutMonAnimation) return "BattleIntroOpponent2SendsOutMonAnimation";
+    if (func == BattleIntroRecordMonsToDex) return "BattleIntroRecordMonsToDex";
+    if (func == BattleIntroPrintPlayerSendsOut) return "BattleIntroPrintPlayerSendsOut";
+    if (func == BattleIntroPlayer1SendsOutMonAnimation) return "BattleIntroPlayer1SendsOutMonAnimation";
+    // if (func == BattleIntroPlayer2SendsOutMonAnimation) return "BattleIntroPlayer2SendsOutMonAnimation";
+    if (func == TryDoEventsBeforeFirstTurn) return "TryDoEventsBeforeFirstTurn";
+    if (func == HandleTurnActionSelectionState) return "HandleTurnActionSelectionState";
+    if (func == SetActionsAndBattlersTurnOrder) return "SetActionsAndBattlersTurnOrder";
+    if (func == CheckFocusPunch_ClearVarsBeforeTurnStarts) return "CheckFocusPunch_ClearVarsBeforeTurnStarts";
+    if (func == RunTurnActionsFunctions) return "RunTurnActionsFunctions";
+    if (func == HandleEndTurn_ContinueBattle) return "HandleEndTurn_ContinueBattle";
+    if (func == HandleEndTurn_BattleWon) return "HandleEndTurn_BattleWon";
+    if (func == HandleEndTurn_BattleLost) return "HandleEndTurn_BattleLost";
+    if (func == HandleEndTurn_RanFromBattle) return "HandleEndTurn_RanFromBattle";
+    if (func == HandleEndTurn_MonFled) return "HandleEndTurn_MonFled";
+    if (func == HandleEndTurn_FinishBattle) return "HandleEndTurn_FinishBattle";
+    if (func == FreeResetData_ReturnToOvOrDoEvolutions) return "FreeResetData_ReturnToOvOrDoEvolutions";
+    if (func == TryEvolvePokemon) return "TryEvolvePokemon";
+    if (func == WaitForEvoSceneToFinish) return "WaitForEvoSceneToFinish";
+    if (func == ReturnFromBattleToOverworld) return "ReturnFromBattleToOverworld";
+    return "Unknown";
+}
+
 static void BattleMainCB1(void)
 {
     gBattleMainFunc();
 
-    for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
+    for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++){
+        // DebugPrintf("gBattleMainFunc = %s", GetBattleMainFuncName(gBattleMainFunc));
         gBattlerControllerFuncs[gActiveBattler]();
+    }
 }
-
 static void BattleStartClearSetData(void)
 {
     s32 i;
@@ -4294,8 +4328,6 @@ void DumpMonData(){
             (gBattlersCount > 2 && gBattlerPartyIndexes[B_POSITION_PLAYER_RIGHT] == i)) {
             monDataPlayer[i * MON_DATA_U32_SIZE + STATUS2_OFFSET] = gBattleMons[B_POSITION_PLAYER_LEFT].status2;
             monDataPlayer[i * MON_DATA_U32_SIZE] = TRUE;
-            DebugPrintf("Player mon %d: hp %d, status2 %08X\n", 
-                i, gPlayerParty[i].hp, gBattleMons[B_POSITION_PLAYER_LEFT].status2);
         }
     }
 
@@ -4306,8 +4338,6 @@ void DumpMonData(){
             (gBattlersCount > 2 && gBattlerPartyIndexes[B_POSITION_OPPONENT_RIGHT] == i)) {
             monDataEnemy[i * MON_DATA_U32_SIZE + STATUS2_OFFSET] = gBattleMons[B_POSITION_OPPONENT_LEFT].status2;
             monDataEnemy[i * MON_DATA_U32_SIZE] = TRUE;
-            DebugPrintf("Enemy mon %d: hp %d, status2 %08X\n", 
-                i, gEnemyParty[i].hp, gBattleMons[B_POSITION_OPPONENT_LEFT].status2);
         }
     }
 }
@@ -4401,19 +4431,16 @@ static void HandleTurnActionSelectionState(void)
     gBattleCommunication[ACTIONS_CONFIRMED_COUNT] = 0;
     for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
     {
-            // DebugPrintf("gActive Battler %d is in %d state",gActiveBattler,gBattleCommunication[gActiveBattler] );
         
         u8 position = GetBattlerPosition(gActiveBattler);
         switch (gBattleCommunication[gActiveBattler])
         {
         case STATE_TURN_START_RECORD: // Recorded battle related action on start of every turn.
-            DebugPrintf("gActive Battler %d is in %d state",gActiveBattler,gBattleCommunication[gActiveBattler] );
 
             RecordedBattle_CopyBattlerMoves();
             gBattleCommunication[gActiveBattler] = STATE_BEFORE_ACTION_CHOSEN;
             break;
         case STATE_BEFORE_ACTION_CHOSEN: // Choose an action.
-            DebugPrintf("gActive Battler %d is in %d state",gActiveBattler,gBattleCommunication[gActiveBattler] );
             *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = PARTY_SIZE;
             if (gBattleTypeFlags & BATTLE_TYPE_MULTI
                 || (position & BIT_FLANK) == B_FLANK_LEFT
@@ -4446,11 +4473,9 @@ static void HandleTurnActionSelectionState(void)
             }
             break;
         case STATE_WAIT_ACTION_CHOSEN: // Try to perform an action.
-            DebugPrintf("gActive Battler %d is in %d state",gActiveBattler,gBattleCommunication[gActiveBattler] );
-            
+            DebugPrintf("gActiveBattler: %d is in STATE_WAIT_ACTION_CHOSEN, gBattleControllerExecFlags=%d", gActiveBattler, gBattleControllerExecFlags);
             if ((!(gBattleControllerExecFlags & ((gBitTable[gActiveBattler]) | (0xF << 28) | (gBitTable[gActiveBattler] << 4) | (gBitTable[gActiveBattler] << 8) | (gBitTable[gActiveBattler] << 12)))) )
             {
-                DebugPrintf("gActive Battler %d choose action %d",gActiveBattler,gChosenActionByBattler[gActiveBattler] );
 
                 RecordedBattle_SetBattlerAction(gActiveBattler, gBattleBufferB[gActiveBattler][1]);
                 gChosenActionByBattler[gActiveBattler] = gBattleBufferB[gActiveBattler][1];
@@ -4458,7 +4483,6 @@ static void HandleTurnActionSelectionState(void)
                 switch (gBattleBufferB[gActiveBattler][1])
                 {
                 case B_ACTION_USE_MOVE:
-                    DebugPrintf("gActive Battler %d is in B_ACTION_USE_MOVE",gActiveBattler );
                     
                     if (AreAllMovesUnusable())
                     {
@@ -4523,6 +4547,7 @@ static void HandleTurnActionSelectionState(void)
                         gChosenMoveByBattler[gActiveBattler] = gBattleMons[gActiveBattler].moves[actionDone];
                          *(gBattleStruct->moveTarget + gActiveBattler) = targetBattler;
                         gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
+                        DebugPrintf("gActiveBattler: %d, moves: %d\n", gActiveBattler, moveInfo.moves[actionDone]);
                         return;
 
 
@@ -4582,6 +4607,7 @@ static void HandleTurnActionSelectionState(void)
                             *(gBattleStruct->monToSwitchIntoId + gActiveBattler)  = (gActiveBattler == PLAYER) ? actionDonePlayer -4 : actionDoneEnemy-4;
                             *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
                             gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
+                            DebugPrintf("gActiveBattler: %d, monToSwitchIntoId: %d\n", gActiveBattler, *(gBattleStruct->monToSwitchIntoId + gActiveBattler));
                             #else
                             BtlController_EmitChoosePokemon(BUFFER_A, PARTY_ACTION_CHOOSE_MON, PARTY_SIZE, ABILITY_NONE, gBattleStruct->battlerPartyOrders[gActiveBattler]);
                             #endif
@@ -5301,11 +5327,40 @@ static void CheckFocusPunch_ClearVarsBeforeTurnStarts(void)
     gBattleResources->battleScriptsStack->size = 0;
 }
 
+
+static const char *GetTurnActionFuncName(u8 actionFuncId)
+{
+    switch (actionFuncId)
+    {
+        case B_ACTION_USE_MOVE: return "HandleAction_UseMove";
+        case B_ACTION_USE_ITEM: return "HandleAction_UseItem";
+        case B_ACTION_SWITCH: return "HandleAction_Switch";
+        case B_ACTION_RUN: return "HandleAction_Run";
+        case B_ACTION_SAFARI_WATCH_CAREFULLY: return "HandleAction_WatchesCarefully";
+        case B_ACTION_SAFARI_BALL: return "HandleAction_SafariZoneBallThrow";
+        case B_ACTION_SAFARI_POKEBLOCK: return "HandleAction_ThrowPokeblock";
+        case B_ACTION_SAFARI_GO_NEAR: return "HandleAction_GoNear";
+        case B_ACTION_SAFARI_RUN: return "HandleAction_SafariZoneRun";
+        case B_ACTION_WALLY_THROW: return "HandleAction_WallyBallThrow";
+        case B_ACTION_EXEC_SCRIPT: return "HandleAction_RunBattleScript";
+        case B_ACTION_TRY_FINISH: return "HandleAction_TryFinish";
+        case B_ACTION_FINISHED: return "HandleAction_ActionFinished";
+        case B_ACTION_NOTHING_FAINTED: return "HandleAction_NothingIsFainted";
+        default: return "Unknown";
+    }
+}
+
+EWRAM_DATA int idFunc = 0;
+
 static void RunTurnActionsFunctions(void)
 {
     if (gBattleOutcome != 0)
         gCurrentActionFuncId = B_ACTION_FINISHED;
-
+    if(idFunc != gCurrentActionFuncId)
+    {
+        idFunc = gCurrentActionFuncId;
+        DebugPrintf("RunTurnActionsFunctions: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
+    }   
     *(&gBattleStruct->savedTurnActionNumber) = gCurrentTurnActionNumber;
     sTurnActionsFuncsTable[gCurrentActionFuncId]();
 
@@ -5612,8 +5667,61 @@ static void ReturnFromBattleToOverworld(void)
     SetMainCallback2(gMain.savedCallback);
 }
 
+
+static const char *const gBattleScriptingCommandsNames[] = {
+    "Cmd_attackcanceler", "Cmd_accuracycheck", "Cmd_attackstring", "Cmd_ppreduce", "Cmd_critcalc", "Cmd_damagecalc", "Cmd_typecalc", "Cmd_adjustnormaldamage",
+    "Cmd_adjustnormaldamage2", "Cmd_attackanimation", "Cmd_waitanimation", "Cmd_healthbarupdate", "Cmd_datahpupdate", "Cmd_critmessage", "Cmd_effectivenesssound", "Cmd_resultmessage",
+    "Cmd_printstring", "Cmd_printselectionstring", "Cmd_waitmessage", "Cmd_printfromtable", "Cmd_printselectionstringfromtable", "Cmd_seteffectwithchance", "Cmd_seteffectprimary", "Cmd_seteffectsecondary",
+    "Cmd_clearstatusfromeffect", "Cmd_tryfaintmon", "Cmd_dofaintanimation", "Cmd_cleareffectsonfaint", "Cmd_jumpifstatus", "Cmd_jumpifstatus2", "Cmd_jumpifability", "Cmd_jumpifsideaffecting",
+    "Cmd_jumpifstat", "Cmd_jumpifstatus3condition", "Cmd_jumpiftype", "Cmd_getexp", "Cmd_checkteamslost", "Cmd_movevaluescleanup", "Cmd_setmultihit", "Cmd_decrementmultihit",
+    "Cmd_goto", "Cmd_jumpifbyte", "Cmd_jumpifhalfword", "Cmd_jumpifword", "Cmd_jumpifarrayequal", "Cmd_jumpifarraynotequal", "Cmd_setbyte", "Cmd_addbyte",
+    "Cmd_subbyte", "Cmd_copyarray", "Cmd_copyarraywithindex", "Cmd_orbyte", "Cmd_orhalfword", "Cmd_orword", "Cmd_bicbyte", "Cmd_bichalfword",
+    "Cmd_bicword", "Cmd_pause", "Cmd_waitstate", "Cmd_healthbar_update", "Cmd_return", "Cmd_end", "Cmd_end2", "Cmd_end3",
+    "Cmd_jumpifaffectedbyprotect", "Cmd_call", "Cmd_jumpiftype2", "Cmd_jumpifabilitypresent", "Cmd_endselectionscript", "Cmd_playanimation", "Cmd_playanimation_var", "Cmd_setgraphicalstatchangevalues",
+    "Cmd_playstatchangeanimation", "Cmd_moveend", "Cmd_typecalc2", "Cmd_returnatktoball", "Cmd_getswitchedmondata", "Cmd_switchindataupdate", "Cmd_switchinanim", "Cmd_jumpifcantswitch",
+    "Cmd_openpartyscreen", "Cmd_switchhandleorder", "Cmd_switchineffects", "Cmd_trainerslidein", "Cmd_playse", "Cmd_fanfare", "Cmd_playfaintcry", "Cmd_endlinkbattle",
+    "Cmd_returntoball", "Cmd_handlelearnnewmove", "Cmd_yesnoboxlearnmove", "Cmd_yesnoboxstoplearningmove", "Cmd_hitanimation", "Cmd_getmoneyreward", "Cmd_updatebattlermoves", "Cmd_swapattackerwithtarget",
+    "Cmd_incrementgamestat", "Cmd_drawpartystatussummary", "Cmd_hidepartystatussummary", "Cmd_jumptocalledmove", "Cmd_statusanimation", "Cmd_status2animation", "Cmd_chosenstatusanimation", "Cmd_yesnobox",
+    "Cmd_cancelallactions", "Cmd_adjustsetdamage", "Cmd_removeitem", "Cmd_atknameinbuff1", "Cmd_drawlvlupbox", "Cmd_resetsentmonsvalue", "Cmd_setatktoplayer0", "Cmd_makevisible",
+    "Cmd_recordlastability", "Cmd_buffermovetolearn", "Cmd_jumpifplayerran", "Cmd_hpthresholds", "Cmd_hpthresholds2", "Cmd_useitemonopponent", "Cmd_various", "Cmd_setprotectlike",
+    "Cmd_tryexplosion", "Cmd_setatkhptozero", "Cmd_jumpifnexttargetvalid", "Cmd_tryhealhalfhealth", "Cmd_trymirrormove", "Cmd_setrain", "Cmd_setreflect", "Cmd_setseeded",
+    "Cmd_manipulatedamage", "Cmd_trysetrest", "Cmd_jumpifnotfirstturn", "Cmd_nop", "Cmd_jumpifcantmakeasleep", "Cmd_stockpile", "Cmd_stockpiletobasedamage", "Cmd_stockpiletohpheal",
+    "Cmd_negativedamage", "Cmd_statbuffchange", "Cmd_normalisebuffs", "Cmd_setbide", "Cmd_confuseifrepeatingattackends", "Cmd_setmultihitcounter", "Cmd_initmultihitstring", "Cmd_forcerandomswitch",
+    "Cmd_tryconversiontypechange", "Cmd_givepaydaymoney", "Cmd_setlightscreen", "Cmd_tryKO", "Cmd_damagetohalftargethp", "Cmd_setsandstorm", "Cmd_weatherdamage", "Cmd_tryinfatuating",
+    "Cmd_updatestatusicon", "Cmd_setmist", "Cmd_setfocusenergy", "Cmd_transformdataexecution", "Cmd_setsubstitute", "Cmd_mimicattackcopy", "Cmd_metronome", "Cmd_dmgtolevel",
+    "Cmd_psywavedamageeffect", "Cmd_counterdamagecalculator", "Cmd_mirrorcoatdamagecalculator", "Cmd_disablelastusedattack", "Cmd_trysetencore", "Cmd_painsplitdmgcalc", "Cmd_settypetorandomresistance", "Cmd_setalwayshitflag",
+    "Cmd_copymovepermanently", "Cmd_trychoosesleeptalkmove", "Cmd_setdestinybond", "Cmd_trysetdestinybondtohappen", "Cmd_remaininghptopower", "Cmd_tryspiteppreduce", "Cmd_healpartystatus", "Cmd_cursetarget",
+    "Cmd_trysetspikes", "Cmd_setforesight", "Cmd_trysetperishsong", "Cmd_rolloutdamagecalculation", "Cmd_jumpifconfusedandstatmaxed", "Cmd_furycuttercalc", "Cmd_friendshiptodamagecalculation", "Cmd_presentdamagecalculation",
+    "Cmd_setsafeguard", "Cmd_magnitudedamagecalculation", "Cmd_jumpifnopursuitswitchdmg", "Cmd_setsunny", "Cmd_maxattackhalvehp", "Cmd_copyfoestats", "Cmd_rapidspinfree", "Cmd_setdefensecurlbit",
+    "Cmd_recoverbasedonsunlight", "Cmd_hiddenpowercalc", "Cmd_selectfirstvalidtarget", "Cmd_trysetfutureattack", "Cmd_trydobeatup", "Cmd_setsemiinvulnerablebit", "Cmd_clearsemiinvulnerablebit", "Cmd_setminimize",
+    "Cmd_sethail", "Cmd_trymemento", "Cmd_setforcedtarget", "Cmd_setcharge", "Cmd_callterrainattack", "Cmd_cureifburnedparalysedorpoisoned", "Cmd_settorment", "Cmd_jumpifnodamage",
+    "Cmd_settaunt", "Cmd_trysethelpinghand", "Cmd_tryswapitems", "Cmd_trycopyability", "Cmd_trywish", "Cmd_trysetroots", "Cmd_doubledamagedealtifdamaged", "Cmd_setyawn",
+    "Cmd_setdamagetohealthdifference", "Cmd_scaledamagebyhealthratio", "Cmd_tryswapabilities", "Cmd_tryimprison", "Cmd_trysetgrudge", "Cmd_weightdamagecalculation", "Cmd_assistattackselect", "Cmd_trysetmagiccoat",
+    "Cmd_trysetsnatch", "Cmd_trygetintimidatetarget", "Cmd_switchoutabilities", "Cmd_jumpifhasnohp", "Cmd_getsecretpowereffect", "Cmd_pickup", "Cmd_docastformchangeanimation", "Cmd_trycastformdatachange",
+    "Cmd_settypebasedhalvers", "Cmd_setweatherballtype", "Cmd_tryrecycleitem", "Cmd_settypetoterrain", "Cmd_pursuitdoubles", "Cmd_snatchsetbattlers", "Cmd_removelightscreenreflect", "Cmd_handleballthrow",
+    "Cmd_givecaughtmon", "Cmd_trysetcaughtmondexflags", "Cmd_displaydexinfo", "Cmd_trygivecaughtmonnick", "Cmd_subattackerhpbydmg", "Cmd_removeattackerstatus1", "Cmd_finishaction", "Cmd_finishturn",
+    "Cmd_trainerslideout"
+};
+
+static const char *GetBattleScriptCommandName(u8 opcode)
+{
+    if (opcode < sizeof(gBattleScriptingCommandsNames)/sizeof(gBattleScriptingCommandsNames[0]))
+        return gBattleScriptingCommandsNames[opcode];
+    else
+        return "UnknownBattleScriptCmd";
+}
+
+EWRAM_DATA int idFuncRun = 0;
+EWRAM_DATA int idFuncPop = 0;
+
+
 void RunBattleScriptCommands_PopCallbacksStack(void)
 {
+    if(idFuncRun != gCurrentActionFuncId)
+    {
+        idFuncRun = gCurrentActionFuncId;
+        DebugPrintf("RunBattleScriptCommands_PopCallbacksStack: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
+    }
     if (gCurrentActionFuncId == B_ACTION_TRY_FINISH || gCurrentActionFuncId == B_ACTION_FINISHED)
     {
         if (gBattleResources->battleCallbackStack->size != 0)
@@ -5622,13 +5730,31 @@ void RunBattleScriptCommands_PopCallbacksStack(void)
     }
     else
     {
-        if (gBattleControllerExecFlags == 0)
+        if (gBattleControllerExecFlags == 0) {
+            
             gBattleScriptingCommandsTable[gBattlescriptCurrInstr[0]]();
+        }
+        else if(idFuncRun != gCurrentActionFuncId)
+        {
+            idFuncRun = gCurrentActionFuncId;
+            DebugPrintf("!gBattleControllerExecFlags PopCallbacksStack: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
+        }
     }
 }
 
 void RunBattleScriptCommands(void)
 {
-    if (gBattleControllerExecFlags == 0)
+    if(idFuncPop != gCurrentActionFuncId)
+    {
+        idFuncPop = gCurrentActionFuncId;
+        DebugPrintf("RunBattleScriptCommands: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
+    }
+    if (gBattleControllerExecFlags == 0) {
         gBattleScriptingCommandsTable[gBattlescriptCurrInstr[0]]();
+    }
+    else if(idFuncPop != gCurrentActionFuncId)
+    {
+        idFuncPop = gCurrentActionFuncId;
+        DebugPrintf("!gBattleControllerExecFlags: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
+    }
 }
