@@ -763,20 +763,10 @@ static void CB2_InitBattleInternal(void)
         if (enemyTeam[0]==0){
             DebugPrintf("Should not be here");
             u32 _enemyTeam[] =  {
-            352,  15, 5, 5, 5,      5, 100, 
-            15,     15, 5,   5,   5,  5, 100, 
-            145,  15, 5,   5, 5,    5, 100, 
-            404, 15, 5, 5, 5,  5, 100,
-            243, 10, 5, 5,   5, 5, 100, 
-            86,    10, 5,      5,  5,  5, 100
+            116, 10, 129, 38, 164, 56, 100, 321, 10, 174, 189, 52, 38, 100, 39, 10, 223, 69, 244, 164, 100, 90, 10, 62, 38, 43, 129, 100, 250, 10, 219, 38, 203, 173, 100, 143, 10, 102, 187, 111, 173, 100
             };
             u32 _playerTeam[] = {
-            403, 10, 226, 164, 102, 68, 100, 
-            190, 10, 39, 173, 210, 129, 100, 
-            350, 10, 111, 173, 164, 204, 100, 
-            228, 10, 46, 185, 242, 102, 100, 
-            0, 10, 33, 172, 52, 164, 100,
-            0, 10, 29, 38, 164, 73, 100
+            390, 10, 157, 10, 173, 210, 100, 120, 10, 61, 214, 106, 173, 100, 404, 10, 86, 111, 329, 184, 100, 229, 10, 185, 242, 102, 43, 100, 265, 10, 33, 0, 0, 0, 100, 72, 10, 164, 35, 102, 112, 100
             };
             for(i=0; i < PARTY_SIZE; i++)
             {
@@ -4588,7 +4578,7 @@ static void HandleTurnActionSelectionState(void)
                         #ifdef OBSERVED_DATA
 
                        
-                        actionDone = (gActiveBattler==0)? actionDonePlayer : actionDoneEnemy;
+                        actionDone = (gActiveBattler==PLAYER)? actionDonePlayer : actionDoneEnemy;
                         u16 move = gBattleMons[gActiveBattler].moves[actionDone];
                         u8 moveTarget;
                         u8 targetBattler;
@@ -4966,9 +4956,9 @@ static void HandleTurnActionSelectionState(void)
     for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
     {
 
-        // DebugPrintf("gActiveBattler %d is in state %d\n",gActiveBattler,gBattleCommunication[gActiveBattler]);
-        actionDonePlayer = 0;
-        actionDoneEnemy = 0;
+        // // DebugPrintf("gActiveBattler %d is in state %d\n",gActiveBattler,gBattleCommunication[gActiveBattler]);
+        // actionDonePlayer = 0;
+        // actionDoneEnemy = 0;
 
         if (gBattleCommunication[gActiveBattler] == STATE_BEFORE_ACTION_CHOSEN)
         {
@@ -4978,6 +4968,70 @@ static void HandleTurnActionSelectionState(void)
                 DumpLegalSwitch(PLAYER,legalSwitchActionsPlayer);
                 DumpLegalSwitch(ENEMY,legalSwitchActionsEnemy);
                 DumpMonData();
+                int legalMoves[MAX_MON_MOVES], legalSwitches[PARTY_SIZE];
+                int numLegalMoves = 0, numLegalSwitches = 0;
+
+                // Collect legal moves
+                for (i = 0; i < MAX_MON_MOVES; i++)
+                    if (legalMoveActionsPlayer[i])
+                        legalMoves[numLegalMoves++] = i;
+
+                // Collect legal switches
+                for (i = 0; i < PARTY_SIZE; i++)
+                    if (legalSwitchActionsPlayer[i])
+                        legalSwitches[numLegalSwitches++] = i;
+
+                // Decide: move or switch (if both possible, 50/50)
+                u8 canSwitch = numLegalSwitches > 0;
+                u8 canMove = numLegalMoves > 0;
+                u8 doSwitch = canSwitch && (!canMove || (Random2() & 1));
+                int idx = 0;
+                if (doSwitch)
+                {
+                    // Pick a random legal switch (actionDonePlayer = 4..9)
+                     idx = legalSwitches[Random2() % numLegalSwitches];
+                    actionDonePlayer = idx + 4;
+                }
+                else if (canMove)
+                {
+                    // Pick a random legal move (actionDonePlayer = 0..3)
+                     idx = legalMoves[Random2() % numLegalMoves];
+                    actionDonePlayer = idx;
+                }
+                else
+                {
+                    // No legal moves or switches, fallback
+                    actionDonePlayer = 0;
+                }
+                 legalMoves[MAX_MON_MOVES], legalSwitches[PARTY_SIZE];
+                 numLegalMoves = 0, numLegalSwitches = 0;
+
+                for (i = 0; i < MAX_MON_MOVES; i++)
+                    if (legalMoveActionsEnemy[i])
+                        legalMoves[numLegalMoves++] = i;
+
+                for (i = 0; i < PARTY_SIZE; i++)
+                    if (legalSwitchActionsEnemy[i])
+                        legalSwitches[numLegalSwitches++] = i;
+
+                 canSwitch = numLegalSwitches > 0;
+                 canMove = numLegalMoves > 0;
+                 doSwitch = canSwitch && (!canMove || (Random2() % 100 >= 80));
+
+                if (doSwitch)
+                {
+                     idx = legalSwitches[Random2() % numLegalSwitches];
+                    actionDoneEnemy = idx + 4;
+                }
+                else if (canMove)
+                {
+                     idx = legalMoves[Random2() % numLegalMoves];
+                    actionDoneEnemy = idx;
+                }
+                else
+                {
+                    actionDoneEnemy = 0;
+                }
                 
                 stopHandleTurn = 1;
                 DebugPrintf("actionDonePlayer = %d",actionDonePlayer);
@@ -5789,7 +5843,7 @@ void RunBattleScriptCommands_PopCallbacksStack(void)
     if(idFuncRun != gCurrentActionFuncId)
     {
         idFuncRun = gCurrentActionFuncId;
-        // DebugPrintf("RunBattleScriptCommands_PopCallbacksStack: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
+        DebugPrintf("RunBattleScriptCommands_PopCallbacksStack: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
     }
     if (gCurrentActionFuncId == B_ACTION_TRY_FINISH || gCurrentActionFuncId == B_ACTION_FINISHED)
     {
@@ -5806,7 +5860,7 @@ void RunBattleScriptCommands_PopCallbacksStack(void)
         else if(idFuncRun != gCurrentActionFuncId)
         {
             idFuncRun = gCurrentActionFuncId;
-            // DebugPrintf("!gBattleControllerExecFlags PopCallbacksStack: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
+            DebugPrintf("!gBattleControllerExecFlags PopCallbacksStack: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
         }
     }
 }

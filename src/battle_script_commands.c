@@ -4901,54 +4901,59 @@ void DumpLegalSwitchBattleScript(int gActiveBattler,u16 *dst){
     s32 abilityCheck;
 
     *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
-
-    // global switch prevention conditions
-    bool8 preventSwitch = FALSE;
-    if (gBattleMons[gActiveBattler].status2 & (STATUS2_WRAPPED | STATUS2_ESCAPE_PREVENTION)
-        || gBattleTypeFlags & BATTLE_TYPE_ARENA
-        || gStatuses3[gActiveBattler] & STATUS3_ROOTED)
-    {
+    if(gActiveBattler == PLAYER){
         for (i = 0; i < PARTY_SIZE; i++)
-            dst[i] = FALSE;
-        return;
-    }
+        {
+            // can't switch to self
+            if (i == gBattlerPartyIndexes[gActiveBattler])
+            {
+                dst[i] = FALSE;
+                continue;
+            }
 
-    // ability-based switch prevention
-    if ((abilityCheck = ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_SHADOW_TAG))
-        || ((abilityCheck = ABILITY_ON_OPPOSING_FIELD(gActiveBattler, ABILITY_ARENA_TRAP))
-            && !IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_FLYING)
-            && gBattleMons[gActiveBattler].ability != ABILITY_LEVITATE)
-        || ((abilityCheck = AbilityBattleEffects(ABILITYEFFECT_CHECK_FIELD_EXCEPT_BATTLER, gActiveBattler, ABILITY_MAGNET_PULL, 0, 0))
-            && IS_BATTLER_OF_TYPE(gActiveBattler, TYPE_STEEL)))
-    {
+            if (GetMonData(&gPlayerParty[i], MON_DATA_HP) == 0)
+            {
+                dst[i] = FALSE;
+                continue;
+            }
+
+            if (GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
+            {
+                dst[i] = FALSE;
+                continue;
+            }
+            DebugPrintf("DumpLegalSwitch gAB %d, i %d\n is valid,\n hp = %d, species =%d\n", gActiveBattler, i, GetMonData(&gPlayerParty[i], MON_DATA_HP),
+                        GetMonData(&gPlayerParty[i], MON_DATA_SPECIES));
+            dst[i] = TRUE;
+        }
+    }
+    else{
         for (i = 0; i < PARTY_SIZE; i++)
-            dst[i] = FALSE;
-        return;
+        {
+            // can't switch to self
+            if (i == gBattlerPartyIndexes[gActiveBattler])
+            {
+                dst[i] = FALSE;
+                continue;
+            }
+
+            if (GetMonData(&gEnemyParty[i], MON_DATA_HP) == 0)
+            {
+                dst[i] = FALSE;
+                continue;
+            }
+
+            if (GetMonData(&gEnemyParty[i], MON_DATA_IS_EGG))
+            {
+                dst[i] = FALSE;
+                continue;
+            }
+            DebugPrintf("DumpLegalSwitch gAB %d, i %d\n is valid,\n hp = %d, species =%d\n", gActiveBattler, i, GetMonData(&gEnemyParty[i], MON_DATA_HP),
+                        GetMonData(&gEnemyParty[i], MON_DATA_SPECIES));
+            dst[i] = TRUE;
+        }
     }
 
-    for (i = 0; i < PARTY_SIZE; i++)
-    {
-        // can't switch to self
-        if (i == gBattlerPartyIndexes[gActiveBattler])
-        {
-            dst[i] = FALSE;
-            continue;
-        }
-
-        if (GetMonData(&gPlayerParty[i], MON_DATA_HP) == 0)
-        {
-            dst[i] = FALSE;
-            continue;
-        }
-
-        if (GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
-        {
-            dst[i] = FALSE;
-            continue;
-        }
-
-        dst[i] = TRUE;
-    }
 }
 
 static void Cmd_openpartyscreen(void)
@@ -5214,11 +5219,11 @@ static void Cmd_openpartyscreen(void)
             {
 
                 DumpLegalSwitchBattleScript(gActiveBattler, legalSwitchActionsPlayer);
-                for(int y = 0 ; y < PARTY_SIZE; y++)
+                for(int i = 0; i < PARTY_SIZE; i++)
                 {
-                    if(legalSwitchActionsPlayer[y] == TRUE)
+                    if(legalSwitchActionsPlayer[i] == TRUE)
                     {
-                        actionDonePlayer = y + 4;
+                        actionDonePlayer = i + 4;
                         break;
                     }
                 }
@@ -5230,6 +5235,14 @@ static void Cmd_openpartyscreen(void)
             else
             {
                 DumpLegalSwitchBattleScript(gActiveBattler, legalSwitchActionsEnemy);
+                for(int i = 0; i < PARTY_SIZE; i++)
+                {
+                    if(legalSwitchActionsEnemy[i] == TRUE)
+                    {
+                        actionDoneEnemy = i + 4;
+                        break;
+                    }
+                }
                 stopHandleTurnEnemy = 1;
                 *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = actionDoneEnemy - 4;
                 gBattlerPartyIndexes[gActiveBattler] = actionDoneEnemy - 4;

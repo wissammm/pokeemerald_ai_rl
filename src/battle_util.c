@@ -1900,7 +1900,7 @@ bool8 HandleFaintedMonActions(void)
             {
                 if (gAbsentBattlerFlags & gBitTable[i] && !HasNoMonsToSwitch(i, PARTY_SIZE, PARTY_SIZE))
                 {
-                    DebugPrintf("  Battler %d: was absent but has mons to switch, clearing absent flag.", i);
+                    // DebugPrintf("  Battler %d: was absent but has mons to switch, clearing absent flag.", i);
                     gAbsentBattlerFlags &= ~(gBitTable[i]);
                 }
             }
