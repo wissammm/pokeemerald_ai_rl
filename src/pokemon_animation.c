@@ -5539,10 +5539,7 @@ static void Anim_ShakeGlowBlue_Slow(struct Sprite *sprite)
 
 static void WaitAnimEnd(struct Sprite *sprite)
 {
-    #ifndef SKIP_GRAPHICS
     if (sprite->animEnded)
         sprite->callback = SpriteCallbackDummy;
-    #endif
-    sprite->callback = SpriteCallbackDummy;
         
 }
