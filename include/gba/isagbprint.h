@@ -30,7 +30,12 @@ void AGBPrintInit(void);
 
 #if (LOG_HANDLER == LOG_HANDLER_MGBA_PRINT)
 
+#ifdef NO_DEBUG
+#define DebugPrintf(pBuf, ...)         ((void)0)
+#else
 #define DebugPrintf(pBuf, ...) MgbaPrintf(MGBA_LOG_INFO, pBuf, ## __VA_ARGS__)
+#endif
+
 #define DebugAssert(pFile, nLine, pExpression, nStopProgram) MgbaAssert(pFile, nLine, pExpression, nStopProgram)
 #define DebugPrintfLevel(level, pBuf, ...) MgbaPrintf(level, pBuf, ## __VA_ARGS__)
 

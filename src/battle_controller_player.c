@@ -3085,6 +3085,11 @@ static void PlayerHandleBattleAnimation(void)
         u8 animationId = gBattleBufferA[gActiveBattler][1];
         u16 argument = gBattleBufferA[gActiveBattler][2] | (gBattleBufferA[gActiveBattler][3] << 8);
 
+        #ifdef SKIP_GRAPHICS
+        PlayerBufferExecCompleted();
+        return;
+        #endif
+
         if (TryHandleLaunchBattleTableAnimation(gActiveBattler, gActiveBattler, gActiveBattler, animationId, argument))
             PlayerBufferExecCompleted();
         else

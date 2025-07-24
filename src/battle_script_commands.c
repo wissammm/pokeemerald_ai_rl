@@ -3939,6 +3939,10 @@ static void Cmd_pause(void)
     if (gBattleControllerExecFlags == 0)
     {
         u16 value = T2_READ_16(gBattlescriptCurrInstr + 1);
+        #ifdef SKIP_GRAPHICS
+        gBattlescriptCurrInstr += 3;
+        return;
+        #endif
         if (++gPauseCounterBattle >= value)
         {
             gPauseCounterBattle = 0;
