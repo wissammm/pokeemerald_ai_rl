@@ -763,10 +763,10 @@ static void CB2_InitBattleInternal(void)
         if (enemyTeam[0]==0){
             DebugPrintf("Should not be here");
             u32 _enemyTeam[] =  {
-            116, 10, 129, 38, 164, 56, 100, 321, 10, 174, 189, 52, 38, 100, 39, 10, 223, 69, 244, 164, 100, 90, 10, 62, 38, 43, 129, 100, 250, 10, 219, 38, 203, 173, 100, 143, 10, 102, 187, 111, 173, 100
+           244, 10, 207, 53, 34, 173, 100, 367, 10, 38, 207, 205, 254, 100, 47, 10, 10, 34, 210, 164, 100, 50, 10, 45, 214, 222, 34, 100, 14, 10, 106, 0, 0, 0, 100, 384, 10, 334, 25, 203, 196, 100
             };
             u32 _playerTeam[] = {
-            390, 10, 157, 10, 173, 210, 100, 120, 10, 61, 214, 106, 173, 100, 404, 10, 86, 111, 329, 184, 100, 229, 10, 185, 242, 102, 43, 100, 265, 10, 33, 0, 0, 0, 100, 72, 10, 164, 35, 102, 112, 100
+           153, 10, 68, 33, 214, 173, 100, 152, 10, 102, 45, 173, 33, 100, 309, 10, 97, 129, 48, 164, 100, 238, 10, 38, 203, 195, 181, 100, 328, 10, 129, 150, 102, 207, 100, 66, 10, 7, 9, 207, 279, 100
             };
             for(i=0; i < PARTY_SIZE; i++)
             {
@@ -4454,28 +4454,55 @@ void DumpLegalSwitch(int gActiveBattler,u16 *dst){
         return;
     }
 
-    for (i = 0; i < PARTY_SIZE; i++)
-    {
-        // can't switch to self
-        if (i == gBattlerPartyIndexes[gActiveBattler])
+    if(gActiveBattler == PLAYER){
+        for (i = 0; i < PARTY_SIZE; i++)
         {
-            dst[i] = FALSE;
-            continue;
-        }
+            // can't switch to self
+            if (i == gBattlerPartyIndexes[gActiveBattler])
+            {
+                dst[i] = FALSE;
+                continue;
+            }
 
-        if (GetMonData(&gPlayerParty[i], MON_DATA_HP) == 0)
+            if (GetMonData(&gPlayerParty[i], MON_DATA_HP) == 0)
+            {
+                dst[i] = FALSE;
+                continue;
+            }
+
+            if (GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
+            {
+                dst[i] = FALSE;
+                continue;
+            }
+
+            dst[i] = TRUE;
+        }
+    }
+    else{
+        for (i = 0; i < PARTY_SIZE; i++)
         {
-            dst[i] = FALSE;
-            continue;
-        }
+            // can't switch to self
+            if (i == gBattlerPartyIndexes[gActiveBattler])
+            {
+                dst[i] = FALSE;
+                continue;
+            }
 
-        if (GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
-        {
-            dst[i] = FALSE;
-            continue;
-        }
+            if (GetMonData(&gEnemyParty[i], MON_DATA_HP) == 0)
+            {
+                dst[i] = FALSE;
+                continue;
+            }
 
-        dst[i] = TRUE;
+            if (GetMonData(&gEnemyParty[i], MON_DATA_IS_EGG))
+            {
+                dst[i] = FALSE;
+                continue;
+            }
+
+            dst[i] = TRUE;
+        }
     }
 }
 #endif // OBSERVED_DATA
@@ -5032,7 +5059,6 @@ static void HandleTurnActionSelectionState(void)
                 {
                     actionDoneEnemy = 0;
                 }
-                
                 stopHandleTurn = 1;
                 DebugPrintf("actionDonePlayer = %d",actionDonePlayer);
                 DebugPrintf("actionDoneEnemy = %d",actionDoneEnemy);
