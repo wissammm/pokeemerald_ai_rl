@@ -2184,6 +2184,46 @@ static void PlayerHandleLoadMonSprite(void)
 
 static void PlayerHandleSwitchInAnim(void)
 {
+    #ifdef SKIP_GRAPHICS
+        *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = PARTY_SIZE;
+    gBattlerPartyIndexes[gActiveBattler] = gBattleBufferA[gActiveBattler][1];
+    
+    // // Load the Pokémon sprite data
+    // BattleLoadOpponentMonSpriteGfx(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], gActiveBattler);
+    
+    // // Create sprite instantly without animation
+    // gBattlerSpriteIds[gActiveBattler] = CreateSprite(
+    //     &gMultiuseSpriteTemplate,
+    //     GetBattlerSpriteCoord(gActiveBattler, BATTLER_COORD_X_2),
+    //     GetBattlerSpriteDefault_Y(gActiveBattler),
+    //     GetBattlerSpriteSubpriority(gActiveBattler));
+    
+    gSprites[gBattlerSpriteIds[gActiveBattler]].data[0] = gActiveBattler;
+    gSprites[gBattlerSpriteIds[gActiveBattler]].data[2] = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_SPECIES);
+    gSprites[gBattlerSpriteIds[gActiveBattler]].oam.paletteNum = gActiveBattler;
+    
+    // Set up the sprite without animation
+    // StartSpriteAnim(&gSprites[gBattlerSpriteIds[gActiveBattler]], gBattleMonForms[gActiveBattler]);
+    gSprites[gBattlerSpriteIds[gActiveBattler]].invisible = TRUE;
+    gSprites[gBattlerSpriteIds[gActiveBattler]].callback = SpriteCallbackDummy;
+    
+    // SetBattlerShadowSpriteCallback(gActiveBattler, GetMonData(&gEnemyParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_SPECIES));
+    
+    // Update and show healthbox
+    UpdateHealthboxAttribute(gHealthboxSpriteIds[gActiveBattler], &gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], HEALTHBOX_ALL);
+    // StartHealthboxSlideIn(gActiveBattler);
+    SetHealthboxSpriteVisible(gHealthboxSpriteIds[gActiveBattler]);
+    
+    // Handle substitute if necessary
+    if (GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_HP) == 0)
+    {
+        gSprites[gBattlerSpriteIds[gActiveBattler]].invisible = TRUE;
+    }
+    
+    // Mark battle state as complete immediately
+    PlayerBufferExecCompleted();
+    return;
+    #endif
     ClearTemporarySpeciesSpriteData(gActiveBattler, gBattleBufferA[gActiveBattler][2]);
     gBattlerPartyIndexes[gActiveBattler] = gBattleBufferA[gActiveBattler][1];
     BattleLoadPlayerMonSpriteGfx(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], gActiveBattler);

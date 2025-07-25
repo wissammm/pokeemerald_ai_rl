@@ -561,6 +561,10 @@ static void RestoreBGMVolumeAfterPokemonCry(void)
 
 void PlayBGM(u16 songNum)
 {
+    #ifdef SKIP_GRAPHICS
+    if (gDisableMusic)
+        songNum = 0;
+    #endif
     if (gDisableMusic)
         songNum = 0;
     if (songNum == MUS_NONE)
