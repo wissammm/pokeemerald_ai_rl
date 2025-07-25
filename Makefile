@@ -323,6 +323,11 @@ CFLAGS += -DSKIP_TEXT
 CPPFLAGS += -DSKIP_TEXT
 endif
 
+ifeq ($(DNO_DEBUG),1)
+CFLAGS += -DNO_DEBUG
+CPPFLAGS += -DNO_DEBUG
+endif
+
 # The dep rules have to be explicit or else missing files won't be reported.
 # As a side effect, they're evaluated immediately instead of when the rule is invoked.
 # It doesn't look like $(shell) can be deferred so there might not be a better way.

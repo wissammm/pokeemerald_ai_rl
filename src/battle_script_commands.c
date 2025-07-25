@@ -1983,6 +1983,7 @@ static void Cmd_datahpupdate(void)
 
 static void Cmd_critmessage(void)
 {
+    
     if (gBattleControllerExecFlags == 0)
     {
         if (gCritMultiplier == 2 && !(gMoveResultFlags & MOVE_RESULT_NO_EFFECT))
@@ -1999,6 +2000,10 @@ static void Cmd_effectivenesssound(void)
     if (gBattleControllerExecFlags)
         return;
 
+    #ifdef SKIP_GRAPHICS
+    gBattlescriptCurrInstr++;
+    return;
+    #endif
     gActiveBattler = gBattlerTarget;
     if (!(gMoveResultFlags & MOVE_RESULT_MISSED))
     {
@@ -2154,6 +2159,12 @@ static void Cmd_printselectionstring(void)
 
 static void Cmd_waitmessage(void)
 {
+    #ifdef SKIP_TEXT
+    gPauseCounterBattle = 0;
+    gBattlescriptCurrInstr += 3;
+    gBattleCommunication[MSG_DISPLAY] = 0;
+    return;
+    #endif
     if (gBattleControllerExecFlags == 0)
     {
         if (!gBattleCommunication[MSG_DISPLAY])
@@ -5712,6 +5723,10 @@ static void Cmd_yesnoboxstoplearningmove(void)
 
 static void Cmd_hitanimation(void)
 {
+    #ifdef SKIP_GRAPHICS
+    gBattlescriptCurrInstr += 2;
+    return;
+    #endif
     gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
 
     if (gMoveResultFlags & MOVE_RESULT_NO_EFFECT)
@@ -5910,6 +5925,7 @@ static void Cmd_statusanimation(void)
     if (gBattleControllerExecFlags == 0)
     {
         gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
+        #ifndef SKIP_GRAPHICS
         if (!(gStatuses3[gActiveBattler] & STATUS3_SEMI_INVULNERABLE)
             && gDisableStructs[gActiveBattler].substituteHP == 0
             && !(gHitMarker & HITMARKER_NO_ANIMATIONS))
@@ -5917,6 +5933,7 @@ static void Cmd_statusanimation(void)
             BtlController_EmitStatusAnimation(BUFFER_A, FALSE, gBattleMons[gActiveBattler].status1);
             MarkBattlerForControllerExec(gActiveBattler);
         }
+        #endif
         gBattlescriptCurrInstr += 2;
     }
 }
