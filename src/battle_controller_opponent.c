@@ -1191,6 +1191,25 @@ static void StartSendOutAnim(u8 battlerId, bool8 dontClearSubstituteBit)
 
 static void OpponentHandleReturnMonToBall(void)
 {
+    #ifdef SKIP_GRAPHICS
+        if (gBattleBufferA[gActiveBattler][1] == 0)
+    {
+        FreeSpriteOamMatrix(&gSprites[gBattlerSpriteIds[gActiveBattler]]);
+        DestroySprite(&gSprites[gBattlerSpriteIds[gActiveBattler]]);
+        HideBattlerShadowSprite(gActiveBattler);
+        SetHealthboxSpriteInvisible(gHealthboxSpriteIds[gActiveBattler]);
+        OpponentBufferExecCompleted();
+    }
+    else
+    {
+        FreeSpriteOamMatrix(&gSprites[gBattlerSpriteIds[gActiveBattler]]);
+        DestroySprite(&gSprites[gBattlerSpriteIds[gActiveBattler]]);
+        HideBattlerShadowSprite(gActiveBattler);
+        SetHealthboxSpriteInvisible(gHealthboxSpriteIds[gActiveBattler]);
+        OpponentBufferExecCompleted();
+    }
+    return;
+    #endif
     if (gBattleBufferA[gActiveBattler][1] == 0)
     {
         gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].animationState = 0;

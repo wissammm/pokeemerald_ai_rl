@@ -2226,6 +2226,13 @@ static void StartSendOutAnim(u8 battlerId, bool8 dontClearSubstituteBit)
 
 static void PlayerHandleReturnMonToBall(void)
 {
+    #ifdef SKIP_GRAPHICS
+     FreeSpriteOamMatrix(&gSprites[gBattlerSpriteIds[gActiveBattler]]);
+    DestroySprite(&gSprites[gBattlerSpriteIds[gActiveBattler]]);
+    SetHealthboxSpriteInvisible(gHealthboxSpriteIds[gActiveBattler]);
+    PlayerBufferExecCompleted();
+    return;
+    #endif
     if (!gBattleBufferA[gActiveBattler][1])
     {
         gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].animationState = 0;
