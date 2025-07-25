@@ -394,6 +394,21 @@ static void TryShinyAnimAfterMonAnim(void)
 
 static void CompleteOnHealthbarDone(void)
 {
+    #ifdef SKIP_GRAPHICS
+    s16 finalValue = gBattleSpritesDataPtr->battleBars[gActiveBattler].oldValue - 
+                    gBattleSpritesDataPtr->battleBars[gActiveBattler].receivedValue;
+    
+    if (finalValue < 0)
+        finalValue = 0;
+        
+    gBattleSpritesDataPtr->battleBars[gActiveBattler].currValue = finalValue;
+    
+    SetHealthboxSpriteVisible(gHealthboxSpriteIds[gActiveBattler]);
+    
+    UpdateHpTextInHealthbox(gHealthboxSpriteIds[gActiveBattler], finalValue, HP_CURRENT);
+    OpponentBufferExecCompleted();
+    return;
+    #endif
     s16 hpValue = MoveBattleBar(gActiveBattler, gHealthboxSpriteIds[gActiveBattler], HEALTH_BAR, 0);
     SetHealthboxSpriteVisible(gHealthboxSpriteIds[gActiveBattler]);
     if (hpValue != -1)
@@ -1863,6 +1878,11 @@ static void OpponentHandleToggleUnkFlag(void)
 
 static void OpponentHandleHitAnimation(void)
 {
+    #ifdef SKIP_GRAPHICS
+    OpponentBufferExecCompleted();
+    return;
+    #endif
+    
     if (gSprites[gBattlerSpriteIds[gActiveBattler]].invisible == TRUE)
     {
         OpponentBufferExecCompleted();
@@ -1883,6 +1903,10 @@ static void OpponentHandleCantSwitch(void)
 
 static void OpponentHandlePlaySE(void)
 {
+    #ifdef SKIP_GRAPHICS
+    OpponentBufferExecCompleted();
+    return;
+    #endif
     s8 pan;
 
     if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
@@ -1896,6 +1920,10 @@ static void OpponentHandlePlaySE(void)
 
 static void OpponentHandlePlayFanfareOrBGM(void)
 {
+    #ifdef SKIP_GRAPHICS
+    OpponentBufferExecCompleted();
+    return;
+    #endif
     if (gBattleBufferA[gActiveBattler][3])
     {
         BattleStopLowHpSound();
@@ -1911,6 +1939,10 @@ static void OpponentHandlePlayFanfareOrBGM(void)
 
 static void OpponentHandleFaintingCry(void)
 {
+    #ifdef SKIP_GRAPHICS
+    OpponentBufferExecCompleted();
+    return;
+    #endif
     u16 species = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_SPECIES);
 
     PlayCry_ByMode(species, 25, CRY_MODE_FAINT);
