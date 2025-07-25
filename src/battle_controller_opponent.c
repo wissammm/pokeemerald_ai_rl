@@ -1418,6 +1418,14 @@ static void OpponentHandleTrainerSlideBack(void)
 
 static void OpponentHandleFaintAnimation(void)
 {
+    #ifdef SKIP_GRAPHICS
+    FreeSpriteOamMatrix(&gSprites[gBattlerSpriteIds[gActiveBattler]]);
+    DestroySprite(&gSprites[gBattlerSpriteIds[gActiveBattler]]);
+    HideBattlerShadowSprite(gActiveBattler);
+    SetHealthboxSpriteInvisible(gHealthboxSpriteIds[gActiveBattler]);
+    OpponentBufferExecCompleted();
+    return;
+    #endif
     if (gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].animationState == 0)
     {
         if (gBattleSpritesDataPtr->battlerData[gActiveBattler].behindSubstitute)
