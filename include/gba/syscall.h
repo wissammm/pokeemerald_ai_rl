@@ -15,7 +15,11 @@ void SoftReset(u32 resetFlags);
 
 void RegisterRamReset(u32 resetFlags);
 
+#ifdef SKIP_GRAPHICS
+#define VBlankIntrWait() ((void)0)
+#else
 void VBlankIntrWait(void);
+#endif
 
 u16 Sqrt(u32 num);
 

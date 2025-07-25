@@ -427,6 +427,10 @@ static void IntrDummy(void)
 
 static void WaitForVBlank(void)
 {
+    #ifdef SKIP_GRAPHICS
+    gMain.intrCheck |= INTR_FLAG_VBLANK;
+    return;
+    #endif
     gMain.intrCheck &= ~INTR_FLAG_VBLANK;
     while (!(gMain.intrCheck & INTR_FLAG_VBLANK))
         ;
