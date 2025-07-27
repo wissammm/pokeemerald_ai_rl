@@ -1125,6 +1125,21 @@ void Task_PlayerController_RestoreBgmAfterCry(u8 taskId)
 
 static void CompleteOnHealthbarDone(void)
 {
+    #ifdef SKIP_GRAPHICS
+    s16 finalValue = gBattleSpritesDataPtr->battleBars[gActiveBattler].oldValue - 
+                    gBattleSpritesDataPtr->battleBars[gActiveBattler].receivedValue;
+    
+    if (finalValue < 0)
+        finalValue = 0;
+        
+    gBattleSpritesDataPtr->battleBars[gActiveBattler].currValue = finalValue;
+    
+    SetHealthboxSpriteVisible(gHealthboxSpriteIds[gActiveBattler]);
+    
+    UpdateHpTextInHealthbox(gHealthboxSpriteIds[gActiveBattler], finalValue, HP_CURRENT);
+    PlayerBufferExecCompleted();
+    return;
+    #endif
     s16 hpValue = MoveBattleBar(gActiveBattler, gHealthboxSpriteIds[gActiveBattler], HEALTH_BAR, 0);
 
     SetHealthboxSpriteVisible(gHealthboxSpriteIds[gActiveBattler]);
@@ -2184,6 +2199,46 @@ static void PlayerHandleLoadMonSprite(void)
 
 static void PlayerHandleSwitchInAnim(void)
 {
+    #ifdef SKIP_GRAPHICS
+        *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = PARTY_SIZE;
+    gBattlerPartyIndexes[gActiveBattler] = gBattleBufferA[gActiveBattler][1];
+    
+    // // Load the Pokémon sprite data
+    // BattleLoadOpponentMonSpriteGfx(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], gActiveBattler);
+    
+    // // Create sprite instantly without animation
+    // gBattlerSpriteIds[gActiveBattler] = CreateSprite(
+    //     &gMultiuseSpriteTemplate,
+    //     GetBattlerSpriteCoord(gActiveBattler, BATTLER_COORD_X_2),
+    //     GetBattlerSpriteDefault_Y(gActiveBattler),
+    //     GetBattlerSpriteSubpriority(gActiveBattler));
+    
+    gSprites[gBattlerSpriteIds[gActiveBattler]].data[0] = gActiveBattler;
+    gSprites[gBattlerSpriteIds[gActiveBattler]].data[2] = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_SPECIES);
+    gSprites[gBattlerSpriteIds[gActiveBattler]].oam.paletteNum = gActiveBattler;
+    
+    // Set up the sprite without animation
+    // StartSpriteAnim(&gSprites[gBattlerSpriteIds[gActiveBattler]], gBattleMonForms[gActiveBattler]);
+    gSprites[gBattlerSpriteIds[gActiveBattler]].invisible = TRUE;
+    gSprites[gBattlerSpriteIds[gActiveBattler]].callback = SpriteCallbackDummy;
+    
+    // SetBattlerShadowSpriteCallback(gActiveBattler, GetMonData(&gEnemyParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_SPECIES));
+    
+    // Update and show healthbox
+    UpdateHealthboxAttribute(gHealthboxSpriteIds[gActiveBattler], &gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], HEALTHBOX_ALL);
+    // StartHealthboxSlideIn(gActiveBattler);
+    SetHealthboxSpriteVisible(gHealthboxSpriteIds[gActiveBattler]);
+    
+    // Handle substitute if necessary
+    if (GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_HP) == 0)
+    {
+        gSprites[gBattlerSpriteIds[gActiveBattler]].invisible = TRUE;
+    }
+    
+    // Mark battle state as complete immediately
+    PlayerBufferExecCompleted();
+    return;
+    #endif
     ClearTemporarySpeciesSpriteData(gActiveBattler, gBattleBufferA[gActiveBattler][2]);
     gBattlerPartyIndexes[gActiveBattler] = gBattleBufferA[gActiveBattler][1];
     BattleLoadPlayerMonSpriteGfx(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], gActiveBattler);
@@ -2226,6 +2281,13 @@ static void StartSendOutAnim(u8 battlerId, bool8 dontClearSubstituteBit)
 
 static void PlayerHandleReturnMonToBall(void)
 {
+    #ifdef SKIP_GRAPHICS
+     FreeSpriteOamMatrix(&gSprites[gBattlerSpriteIds[gActiveBattler]]);
+    DestroySprite(&gSprites[gBattlerSpriteIds[gActiveBattler]]);
+    SetHealthboxSpriteInvisible(gHealthboxSpriteIds[gActiveBattler]);
+    PlayerBufferExecCompleted();
+    return;
+    #endif
     if (!gBattleBufferA[gActiveBattler][1])
     {
         gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].animationState = 0;
@@ -2407,6 +2469,14 @@ static void PlayerHandleTrainerSlideBack(void)
 
 static void PlayerHandleFaintAnimation(void)
 {
+    #ifdef SKIP_GRAPHICS
+    FreeSpriteOamMatrix(&gSprites[gBattlerSpriteIds[gActiveBattler]]);
+    DestroySprite(&gSprites[gBattlerSpriteIds[gActiveBattler]]);
+    HideBattlerShadowSprite(gActiveBattler);
+    SetHealthboxSpriteInvisible(gHealthboxSpriteIds[gActiveBattler]);
+    PlayerBufferExecCompleted();
+    return;
+    #endif
     if (gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].animationState == 0)
     {
         if (gBattleSpritesDataPtr->battlerData[gActiveBattler].behindSubstitute)
@@ -2817,6 +2887,10 @@ static void PlayerHandleDMA3Transfer(void)
 
 static void PlayerHandlePlayBGM(void)
 {
+    #ifdef SKIP_GRAPHICS
+    PlayerBufferExecCompleted();
+    return;
+    #endif
     PlayBGM(gBattleBufferA[gActiveBattler][1] | (gBattleBufferA[gActiveBattler][2] << 8));
     PlayerBufferExecCompleted();
 }
@@ -2876,6 +2950,10 @@ static void PlayerHandleToggleUnkFlag(void)
 
 static void PlayerHandleHitAnimation(void)
 {
+    #ifdef SKIP_GRAPHICS
+    PlayerBufferExecCompleted();
+    return;
+    #endif
     if (gSprites[gBattlerSpriteIds[gActiveBattler]].invisible == TRUE)
     {
         PlayerBufferExecCompleted();
@@ -2896,6 +2974,10 @@ static void PlayerHandleCantSwitch(void)
 
 static void PlayerHandlePlaySE(void)
 {
+    #ifdef SKIP_GRAPHICS
+    PlayerBufferExecCompleted();
+    return;
+    #endif
     s8 pan;
 
     if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
@@ -2909,6 +2991,10 @@ static void PlayerHandlePlaySE(void)
 
 static void PlayerHandlePlayFanfareOrBGM(void)
 {
+    #ifdef SKIP_GRAPHICS
+    PlayerBufferExecCompleted();
+    return;
+    #endif
     if (gBattleBufferA[gActiveBattler][3])
     {
         BattleStopLowHpSound();
@@ -2924,6 +3010,10 @@ static void PlayerHandlePlayFanfareOrBGM(void)
 
 static void PlayerHandleFaintingCry(void)
 {
+    #ifdef SKIP_GRAPHICS
+    PlayerBufferExecCompleted();
+    return;
+    #endif  
     u16 species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_SPECIES);
 
     PlayCry_ByMode(species, -25, CRY_MODE_FAINT);
@@ -3084,6 +3174,11 @@ static void PlayerHandleBattleAnimation(void)
     {
         u8 animationId = gBattleBufferA[gActiveBattler][1];
         u16 argument = gBattleBufferA[gActiveBattler][2] | (gBattleBufferA[gActiveBattler][3] << 8);
+
+        #ifdef SKIP_GRAPHICS
+        PlayerBufferExecCompleted();
+        return;
+        #endif
 
         if (TryHandleLaunchBattleTableAnimation(gActiveBattler, gActiveBattler, gActiveBattler, animationId, argument))
             PlayerBufferExecCompleted();

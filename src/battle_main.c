@@ -295,6 +295,11 @@ volatile EWRAM_DATA u16 actionDone = 0;
 #warning "SKIP_GRAPHICS is NOT enabled"
 #endif
 
+#ifdef NO_DEBUG
+#warning "NO_DEBUG is enabled"
+#else
+#warning "NO_DEBUG is NOT enabled"
+#endif
 
 void (*gPreBattleCallback1)(void);
 void (*gBattleMainFunc)(void);
@@ -3307,9 +3312,6 @@ static void BattleStartClearSetData(void)
     u32 j;
     u8 *dataPtr;
 
-    #ifdef SKIP_ANIMATIONS
-    gHitMarker |= HITMARKER_NO_ANIMATIONS; 
-    #endif 
 
     TurnValuesCleanUp(FALSE);
     SpecialStatusesClear();
@@ -3362,6 +3364,10 @@ static void BattleStartClearSetData(void)
     else if (!(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED_LINK)) && GetBattleSceneInRecordedBattle())
         gHitMarker |= HITMARKER_NO_ANIMATIONS;
 
+    #ifdef SKIP_GRAPHICS
+    gHitMarker |= HITMARKER_NO_ANIMATIONS; 
+    #endif 
+    
     gBattleScripting.battleStyle = gSaveBlock2Ptr->optionsBattleStyle;
 
     gMultiHitCounter = 0;

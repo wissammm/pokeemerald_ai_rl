@@ -1796,11 +1796,6 @@ static void Cmd_attackanimation(void)
 
 static void Cmd_waitanimation(void)
 {
-    // #ifdef SKIP_GRAPHICS
-    // gBattleControllerExecFlags |= gAnimScriptActive;
-    // gBattlescriptCurrInstr++;
-    // return;
-    // #endif
     if (gBattleControllerExecFlags == 0)
         gBattlescriptCurrInstr++;
 }
@@ -1988,6 +1983,7 @@ static void Cmd_datahpupdate(void)
 
 static void Cmd_critmessage(void)
 {
+    
     if (gBattleControllerExecFlags == 0)
     {
         if (gCritMultiplier == 2 && !(gMoveResultFlags & MOVE_RESULT_NO_EFFECT))
@@ -2004,6 +2000,10 @@ static void Cmd_effectivenesssound(void)
     if (gBattleControllerExecFlags)
         return;
 
+    #ifdef SKIP_GRAPHICS
+    gBattlescriptCurrInstr++;
+    return;
+    #endif
     gActiveBattler = gBattlerTarget;
     if (!(gMoveResultFlags & MOVE_RESULT_MISSED))
     {
@@ -2159,6 +2159,12 @@ static void Cmd_printselectionstring(void)
 
 static void Cmd_waitmessage(void)
 {
+    #ifdef SKIP_TEXT
+    gPauseCounterBattle = 0;
+    gBattlescriptCurrInstr += 3;
+    gBattleCommunication[MSG_DISPLAY] = 0;
+    return;
+    #endif
     if (gBattleControllerExecFlags == 0)
     {
         if (!gBattleCommunication[MSG_DISPLAY])
@@ -3263,7 +3269,6 @@ static void Cmd_getexp(void)
     switch (gBattleScripting.getexpState)
     {
     case 0: // check if should receive exp at all
-        DebugPrintf("GetExp case 0 ");
         if (GetBattlerSide(gBattlerFainted) != B_SIDE_OPPONENT || (gBattleTypeFlags &
              (BATTLE_TYPE_LINK
               | BATTLE_TYPE_RECORDED_LINK
@@ -3283,7 +3288,6 @@ static void Cmd_getexp(void)
         break;
     case 1: // calculate experience points to redistribute
         {
-            DebugPrintf("GetExp case 1 ");
 
             u16 calculatedExp;
             s32 viaSentIn;
@@ -3336,7 +3340,6 @@ static void Cmd_getexp(void)
         }
         // fall through
     case 2: // set exp value to the poke in expgetter_id and print message
-        DebugPrintf("GetExp case 2 ");
 
         if (gBattleControllerExecFlags == 0)
         {
@@ -3433,7 +3436,6 @@ static void Cmd_getexp(void)
         }
         break;
     case 3: // Set stats and give exp
-        DebugPrintf("GetExp case 3 ");
         
         if (gBattleControllerExecFlags == 0)
         {
@@ -3455,7 +3457,6 @@ static void Cmd_getexp(void)
         }
         break;
     case 4: // lvl up if necessary
-        DebugPrintf("GetExp case 4 ");
 
         if (gBattleControllerExecFlags == 0)
         {
@@ -3515,7 +3516,6 @@ static void Cmd_getexp(void)
         }
         break;
     case 5: // looper increment
-        DebugPrintf("GetExp case 5 ");
 
         if (gBattleMoveDamage) // there is exp to give, goto case 3 that gives exp
         {
@@ -3531,7 +3531,6 @@ static void Cmd_getexp(void)
         }
         break;
     case 6: // increment instruction
-        DebugPrintf("GetExp case 6 ");
         
         if (gBattleControllerExecFlags == 0)
         {
@@ -3944,6 +3943,10 @@ static void Cmd_pause(void)
     if (gBattleControllerExecFlags == 0)
     {
         u16 value = T2_READ_16(gBattlescriptCurrInstr + 1);
+        #ifdef SKIP_GRAPHICS
+        gBattlescriptCurrInstr += 3;
+        return;
+        #endif
         if (++gPauseCounterBattle >= value)
         {
             gPauseCounterBattle = 0;
@@ -4031,9 +4034,7 @@ static void Cmd_endselectionscript(void)
 
 static void Cmd_playanimation(void)
 {
-    // #ifdef SKIP_GRAPHICS
-    // //Do Nothing
-    // #else
+
     const u16 *argumentPtr;
 
     gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
@@ -4071,7 +4072,6 @@ static void Cmd_playanimation(void)
         MarkBattlerForControllerExec(gActiveBattler);
         gBattlescriptCurrInstr += 7;
     }
-    // #endif
 
 }
 
@@ -4887,7 +4887,6 @@ static void Cmd_jumpifcantswitch(void)
 // Note that this is not used by the Switch action, only replacing fainted Pokémon or Baton Pass
 static void ChooseMonToSendOut(u8 slotId)
 {
-    DebugPrintf("ChooseMonToSendOut: slotId %d, gActiveBattler %d\n", slotId, gActiveBattler);
     *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
     *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = PARTY_SIZE;
     gBattleStruct->field_93 &= ~(gBitTable[gActiveBattler]);
@@ -4922,8 +4921,6 @@ void DumpLegalSwitchBattleScript(int gActiveBattler,u16 *dst){
                 dst[i] = FALSE;
                 continue;
             }
-            DebugPrintf("DumpLegalSwitch gAB %d, i %d\n is valid,\n hp = %d, species =%d\n", gActiveBattler, i, GetMonData(&gPlayerParty[i], MON_DATA_HP),
-                        GetMonData(&gPlayerParty[i], MON_DATA_SPECIES));
             dst[i] = TRUE;
         }
     }
@@ -4948,8 +4945,6 @@ void DumpLegalSwitchBattleScript(int gActiveBattler,u16 *dst){
                 dst[i] = FALSE;
                 continue;
             }
-            DebugPrintf("DumpLegalSwitch gAB %d, i %d\n is valid,\n hp = %d, species =%d\n", gActiveBattler, i, GetMonData(&gEnemyParty[i], MON_DATA_HP),
-                        GetMonData(&gEnemyParty[i], MON_DATA_SPECIES));
             dst[i] = TRUE;
         }
     }
@@ -5212,22 +5207,19 @@ static void Cmd_openpartyscreen(void)
            
             #ifdef OBSERVED_DATA
             // Auto-select the first valid Pokémon to switch in
-            DebugPrintf("Cmd_openpartyscreen: OBSERVEDDATA %d");
             gActiveBattler = battlerId;
-            
+            u8 i;
             if(gActiveBattler == PLAYER)
             {
 
                 DumpLegalSwitchBattleScript(gActiveBattler, legalSwitchActionsPlayer);
-                for(int i = 0; i < PARTY_SIZE; i++)
+                for( i = 0 ; i < MAX_MON_MOVES; i++)
                 {
-                    if(legalSwitchActionsPlayer[i] == TRUE)
-                    {
-                        actionDonePlayer = i + 4;
-                        break;
-                    }
+                    legalMoveActionsPlayer[i] = FALSE;
                 }
+                
                 stopHandleTurnPlayer = 1;
+                DebugPrintf("Cmd_openpartyscreen: actionDone Player %d", actionDonePlayer);
                 *(gBattleStruct->monToSwitchIntoId + gActiveBattler)  = actionDonePlayer - 4;
                 gBattlerPartyIndexes[gActiveBattler] = actionDonePlayer - 4;
 
@@ -5235,15 +5227,13 @@ static void Cmd_openpartyscreen(void)
             else
             {
                 DumpLegalSwitchBattleScript(gActiveBattler, legalSwitchActionsEnemy);
-                for(int i = 0; i < PARTY_SIZE; i++)
+                for( i = 0 ; i < MAX_MON_MOVES; i++)
                 {
-                    if(legalSwitchActionsEnemy[i] == TRUE)
-                    {
-                        actionDoneEnemy = i + 4;
-                        break;
-                    }
+                    legalMoveActionsEnemy[i] = FALSE;
                 }
                 stopHandleTurnEnemy = 1;
+                DebugPrintf("Cmd_openpartyscreen: actionDone Enemy %d", actionDoneEnemy);
+
                 *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = actionDoneEnemy - 4;
                 gBattlerPartyIndexes[gActiveBattler] = actionDoneEnemy - 4;
             }
@@ -5257,7 +5247,6 @@ static void Cmd_openpartyscreen(void)
             if (gAbsentBattlerFlags & gBitTable[gActiveBattler])
                 gActiveBattler ^= BIT_FLANK;
             
-            DebugPrintf("End of Cmd_openpartyscreen: gActiveBattler %d", gActiveBattler);
             #else
             gActiveBattler = battlerId;
             *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
@@ -5309,14 +5298,12 @@ static void Cmd_switchhandleorder(void)
     switch (gBattlescriptCurrInstr[2])
     {
     case 0:
-        DebugPrintf("Case 0\n");
 
         for (i = 0; i < gBattlersCount; i++)
         {
             if (gBattleBufferB[i][0] == CONTROLLER_CHOSENMONRETURNVALUE)
             {
                 *(gBattleStruct->monToSwitchIntoId + i) = gBattleBufferB[i][1];
-                DebugPrintf("Switching in mon %d for battler %d\n", gBattleBufferB[i][1], i);
                 if (!(gBattleStruct->field_93 & gBitTable[i]))
                 {
                     RecordedBattle_SetBattlerAction(i, gBattleBufferB[i][1]);
@@ -5326,26 +5313,21 @@ static void Cmd_switchhandleorder(void)
         }
         break;
     case 1:
-        DebugPrintf("Case 1\n");
 
         if (!(gBattleTypeFlags & BATTLE_TYPE_MULTI))
             SwitchPartyOrder(gActiveBattler);
         break;
     case 2:
-        DebugPrintf("Case 2\n");
 
         if (!(gBattleStruct->field_93 & gBitTable[gActiveBattler]))
         {
-            DebugPrintf("Switching in mon %d for battler %d\n", gBattleBufferB[gActiveBattler][1], gActiveBattler);
             RecordedBattle_SetBattlerAction(gActiveBattler, gBattleBufferB[gActiveBattler][1]);
             gBattleStruct->field_93 |= gBitTable[gActiveBattler];
         }
         // fall through
     case 3:
-        DebugPrintf("Case 3\n");
         gBattleCommunication[0] = gBattleBufferB[gActiveBattler][1];
         *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = gBattleBufferB[gActiveBattler][1];
-        DebugPrintf("Switching in mon %d for battler %d\n", gBattleBufferB[gActiveBattler][1], gActiveBattler);
         if (gBattleTypeFlags & BATTLE_TYPE_LINK && gBattleTypeFlags & BATTLE_TYPE_MULTI)
         {
             *(gActiveBattler * 3 + (u8 *)(gBattleStruct->battlerPartyOrders) + 0) &= 0xF;
@@ -5367,7 +5349,6 @@ static void Cmd_switchhandleorder(void)
 
         PREPARE_SPECIES_BUFFER(gBattleTextBuff1, gBattleMons[gBattlerAttacker].species)
         PREPARE_MON_NICK_BUFFER(gBattleTextBuff2, gActiveBattler, gBattleBufferB[gActiveBattler][1])
-        DebugPrintf("end of Cmd_switchhandleorder: gActiveBattler %d, monToSwitchIntoId %d\n", gActiveBattler, *(gBattleStruct->monToSwitchIntoId + gActiveBattler));
         gBattleControllerExecFlags = 0;
         break;
     }
@@ -5716,6 +5697,10 @@ static void Cmd_yesnoboxstoplearningmove(void)
 
 static void Cmd_hitanimation(void)
 {
+    #ifdef SKIP_GRAPHICS
+    gBattlescriptCurrInstr += 2;
+    return;
+    #endif
     gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
 
     if (gMoveResultFlags & MOVE_RESULT_NO_EFFECT)
@@ -5914,6 +5899,7 @@ static void Cmd_statusanimation(void)
     if (gBattleControllerExecFlags == 0)
     {
         gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
+        #ifndef SKIP_GRAPHICS
         if (!(gStatuses3[gActiveBattler] & STATUS3_SEMI_INVULNERABLE)
             && gDisableStructs[gActiveBattler].substituteHP == 0
             && !(gHitMarker & HITMARKER_NO_ANIMATIONS))
@@ -5921,6 +5907,7 @@ static void Cmd_statusanimation(void)
             BtlController_EmitStatusAnimation(BUFFER_A, FALSE, gBattleMons[gActiveBattler].status1);
             MarkBattlerForControllerExec(gActiveBattler);
         }
+        #endif
         gBattlescriptCurrInstr += 2;
     }
 }
@@ -10411,13 +10398,11 @@ static void Cmd_removeattackerstatus1(void)
 
 static void Cmd_finishaction(void)
 {
-    DebugPrintf("Cmd_finishaction: gCurrentTurnActionNumber = %d, gBattlersCount = %d\n", gCurrentTurnActionNumber, gBattlersCount);
     gCurrentActionFuncId = B_ACTION_FINISHED;
 }
 
 static void Cmd_finishturn(void)
 {
-    DebugPrintf("Cmd_finishturn: gCurrentTurnActionNumber = %d, gBattlersCount = %d\n", gCurrentTurnActionNumber, gBattlersCount);
     gCurrentActionFuncId = B_ACTION_FINISHED;
     gCurrentTurnActionNumber = gBattlersCount;
 }

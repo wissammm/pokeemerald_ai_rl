@@ -317,7 +317,6 @@ void AnimateSprites(void)
         if (sprite->inUse)
         {
             sprite->callback(sprite);
-
             if (sprite->inUse)
                 AnimateSprite(sprite);
         }
@@ -327,6 +326,17 @@ void AnimateSprites(void)
 void BuildOamBuffer(void)
 {
     u8 temp;
+
+    #ifdef SKIP_GRAPHICS
+    gMain.oamBuffer[0] = gDummyOamData;
+    temp = gMain.oamLoadDisabled;
+    gMain.oamLoadDisabled = TRUE;
+    // AddSpritesToOamBuffer();
+    // CopyMatricesToOamBuffer();
+    gMain.oamLoadDisabled = temp;
+    return;
+    #endif
+
     UpdateOamCoords();
     BuildSpritePriorities();
     SortSprites();
