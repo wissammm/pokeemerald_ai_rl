@@ -10,11 +10,13 @@
 // Data to retrives
 #define MON_DATA_U32_SIZE 35
 #define STATUS2_OFFSET 30
+#define SIZE_OF_TEAM_PARAM 8
+
 
 
 // Dump Data
-extern volatile EWRAM_DATA u32 playerTeam[7 * PARTY_SIZE];
-extern volatile EWRAM_DATA u32 enemyTeam[7 * PARTY_SIZE];
+extern volatile EWRAM_DATA u32 playerTeam[SIZE_OF_TEAM_PARAM * PARTY_SIZE];
+extern volatile EWRAM_DATA u32 enemyTeam[SIZE_OF_TEAM_PARAM * PARTY_SIZE];
 
 extern volatile EWRAM_DATA u32 enemyWon;
 
