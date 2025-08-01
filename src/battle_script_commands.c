@@ -5217,7 +5217,7 @@ static void Cmd_openpartyscreen(void)
            
             #ifdef OBSERVED_DATA
             // Auto-select the first valid Pokémon to switch in
-            gActiveBattler = battlerId;
+            gActiveBattler = battler;
             u8 i;
             if(gActiveBattler == PLAYER)
             {
@@ -5251,9 +5251,9 @@ static void Cmd_openpartyscreen(void)
             
             gBattleStruct->field_93 |= gBitTable[gActiveBattler]; // Mark as handled
             gSpecialStatuses[gActiveBattler].faintedHasReplacement = TRUE;
-            BtlController_EmitChosenMonReturnValue(BUFFER_B,*(gBattleStruct->monToSwitchIntoId + gActiveBattler), gBattleBufferB[gActiveBattler]);
+            BtlController_EmitChosenMonReturnValue(B_COMM_TO_CONTROLLER,*(gBattleStruct->monToSwitchIntoId + gActiveBattler), gBattleBufferB[gActiveBattler]);
             gBattlescriptCurrInstr += 6;
-            gActiveBattler = GetBattlerAtPosition(BATTLE_OPPOSITE(GetBattlerPosition(battlerId)));
+            gActiveBattler = GetBattlerAtPosition(BATTLE_OPPOSITE(GetBattlerPosition(battler)));
             if (gAbsentBattlerFlags & gBitTable[gActiveBattler])
                 gActiveBattler ^= BIT_FLANK;
             

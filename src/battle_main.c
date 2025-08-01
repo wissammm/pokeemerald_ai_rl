@@ -4660,7 +4660,7 @@ static void HandleTurnActionSelectionState(void)
                         // Special case for Curse
                         if (move == MOVE_CURSE)
                         {
-                            if (gBattleMons[gActiveBattler].type1 != TYPE_GHOST && gBattleMons[gActiveBattler].type2 != TYPE_GHOST)
+                            if (gBattleMons[gActiveBattler].types[0] != TYPE_GHOST && gBattleMons[gActiveBattler].types[1] != TYPE_GHOST)
                                 targetBattler = gActiveBattler;
                             else
                                 targetBattler = GetBattlerAtPosition(BATTLE_OPPOSITE(GET_BATTLER_SIDE(gActiveBattler)));
