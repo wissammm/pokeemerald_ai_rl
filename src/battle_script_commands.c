@@ -5227,6 +5227,14 @@ static void Cmd_openpartyscreen(void)
                 {
                     legalMoveActionsPlayer[i] = FALSE;
                 }
+                for( i = 0 ; i < PARTY_SIZE; i++)
+                {
+                    if (legalSwitchActionsPlayer[i] == TRUE)
+                    {
+                        actionDonePlayer = i + 4; // +4 because the first 4 are the enemy Pokémon
+                        break;
+                    }
+                }
                 
                 stopHandleTurnPlayer = 1;
                 DebugPrintf("Cmd_openpartyscreen: actionDone Player %d", actionDonePlayer);
@@ -5241,6 +5249,14 @@ static void Cmd_openpartyscreen(void)
                 {
                     legalMoveActionsEnemy[i] = FALSE;
                 }
+                for( i = 0 ; i < PARTY_SIZE; i++)
+                {
+                    if (legalSwitchActionsEnemy[i] == TRUE)
+                    {
+                        actionDoneEnemy = i + 4; // +4 because the first 4 are the enemy Pokémon
+                        break;
+                    }
+                }
                 stopHandleTurnEnemy = 1;
                 DebugPrintf("Cmd_openpartyscreen: actionDone Enemy %d", actionDoneEnemy);
 
@@ -5251,7 +5267,7 @@ static void Cmd_openpartyscreen(void)
             
             gBattleStruct->field_93 |= gBitTable[gActiveBattler]; // Mark as handled
             gSpecialStatuses[gActiveBattler].faintedHasReplacement = TRUE;
-            BtlController_EmitChosenMonReturnValue(B_COMM_TO_CONTROLLER,*(gBattleStruct->monToSwitchIntoId + gActiveBattler), gBattleBufferB[gActiveBattler]);
+            BtlController_EmitChosenMonReturnValue(B_COMM_TO_ENGINE,*(gBattleStruct->monToSwitchIntoId + gActiveBattler), gBattleBufferB[gActiveBattler]);
             gBattlescriptCurrInstr += 6;
             gActiveBattler = GetBattlerAtPosition(BATTLE_OPPOSITE(GetBattlerPosition(battler)));
             if (gAbsentBattlerFlags & gBitTable[gActiveBattler])
