@@ -5237,7 +5237,7 @@ static void Cmd_openpartyscreen(void)
                 }
                 
                 stopHandleTurnPlayer = 1;
-                DebugPrintf("Cmd_openpartyscreen: actionDone Player %d", actionDonePlayer);
+                // DebugPrintf("Cmd_openpartyscreen: actionDone Player %d", actionDonePlayer);
                 *(gBattleStruct->monToSwitchIntoId + gActiveBattler)  = actionDonePlayer - 4;
                 gBattlerPartyIndexes[gActiveBattler] = actionDonePlayer - 4;
 
@@ -5258,7 +5258,7 @@ static void Cmd_openpartyscreen(void)
                     }
                 }
                 stopHandleTurnEnemy = 1;
-                DebugPrintf("Cmd_openpartyscreen: actionDone Enemy %d", actionDoneEnemy);
+                // DebugPrintf("Cmd_openpartyscreen: actionDone Enemy %d", actionDoneEnemy);
 
                 *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = actionDoneEnemy - 4;
                 gBattlerPartyIndexes[gActiveBattler] = actionDoneEnemy - 4;

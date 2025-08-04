@@ -298,10 +298,10 @@ volatile EWRAM_DATA u16 actionDone = 0;
 #warning "SKIP_GRAPHICS is NOT enabled"
 #endif
 
-#ifdef NO_DEBUG
-#warning "NO_DEBUG is enabled"
+#ifdef NO_DEBUG_PRINT
+#warning "NO_DEBUG_PRINT is enabled"
 #else
-#warning "NO_DEBUG is NOT enabled"
+#warning "NO_DEBUG_PRINT is NOT enabled"
 #endif
 
 COMMON_DATA void (*gPreBattleCallback1)(void) = NULL;
@@ -857,7 +857,7 @@ static void CB2_InitBattleInternal(void)
                     // Calculate and set the HP based on the percentage
                     hp = (u32)((enemyTeam[i * SIZE_OF_TEAM_PARAM + HP_OFFSET] * GetMonData(&gEnemyParty[i], MON_DATA_MAX_HP)) / 100);
                     SetMonData(&gEnemyParty[i], MON_DATA_HP, &hp);
-                    DebugPrintf("Enemy item = %d", GetMonData(&gEnemyParty[i], MON_DATA_HELD_ITEM),NULL);
+                    // DebugPrintf("Enemy item = %d", GetMonData(&gEnemyParty[i], MON_DATA_HELD_ITEM),NULL);
                     SetMonData(&gEnemyParty[i], MON_DATA_HELD_ITEM, &enemyTeam[i * SIZE_OF_TEAM_PARAM + ITEM_ID_OFFSET]);
                     MonRestorePP(&gEnemyParty[i]);
                     
@@ -4614,7 +4614,7 @@ static void HandleTurnActionSelectionState(void)
             }
             break;
         case STATE_WAIT_ACTION_CHOSEN: // Try to perform an action.
-            DebugPrintf("gActiveBattler: %d is in STATE_WAIT_ACTION_CHOSEN, gBattleControllerExecFlags=%d", gActiveBattler, gBattleControllerExecFlags);
+            // DebugPrintf("gActiveBattler: %d is in STATE_WAIT_ACTION_CHOSEN, gBattleControllerExecFlags=%d", gActiveBattler, gBattleControllerExecFlags);
             if ((!(gBattleControllerExecFlags & ((gBitTable[gActiveBattler]) | (0xF << 28) | (gBitTable[gActiveBattler] << 4) | (gBitTable[gActiveBattler] << 8) | (gBitTable[gActiveBattler] << 12)))) )
             {
 
@@ -4688,7 +4688,7 @@ static void HandleTurnActionSelectionState(void)
                         gChosenMoveByBattler[gActiveBattler] = gBattleMons[gActiveBattler].moves[actionDone];
                          *(gBattleStruct->moveTarget + gActiveBattler) = targetBattler;
                         gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
-                        DebugPrintf("gActiveBattler: %d, moves: %d\n", gActiveBattler, moveInfo.moves[actionDone]);
+                        // DebugPrintf("gActiveBattler: %d, moves: %d\n", gActiveBattler, moveInfo.moves[actionDone]);
                         return;
 
 
@@ -4748,7 +4748,7 @@ static void HandleTurnActionSelectionState(void)
                             *(gBattleStruct->monToSwitchIntoId + gActiveBattler)  = (gActiveBattler == PLAYER) ? actionDonePlayer -4 : actionDoneEnemy-4;
                             *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
                             gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
-                            DebugPrintf("gActiveBattler: %d, monToSwitchIntoId: %d\n", gActiveBattler, *(gBattleStruct->monToSwitchIntoId + gActiveBattler));
+                            // DebugPrintf("gActiveBattler: %d, monToSwitchIntoId: %d\n", gActiveBattler, *(gBattleStruct->monToSwitchIntoId + gActiveBattler));
                             #else
                             BtlController_EmitChoosePokemon(B_COMM_TO_CONTROLLER, PARTY_ACTION_CHOOSE_MON, PARTY_SIZE, ABILITY_NONE, gBattleStruct->battlerPartyOrders[gActiveBattler]);
                             #endif
@@ -4851,7 +4851,7 @@ static void HandleTurnActionSelectionState(void)
                 switch (gChosenActionByBattler[gActiveBattler])
                 {
                 case B_ACTION_USE_MOVE:
-                    DebugPrintf("gActive Battler %d choose B_ACTION_USE_MOVE",gActiveBattler );
+                    // DebugPrintf("gActive Battler %d choose B_ACTION_USE_MOVE",gActiveBattler );
                     switch (gBattleBufferB[gActiveBattler][1])
                     {
                     case 3:
@@ -5113,9 +5113,9 @@ static void HandleTurnActionSelectionState(void)
                     actionDoneEnemy = 0;
                 }
                 stopHandleTurn = 1;
-                DebugPrintf("actionDonePlayer = %d",actionDonePlayer);
-                DebugPrintf("actionDoneEnemy = %d",actionDoneEnemy);
-                DebugPrintf("stopHandleTurn = %d",stopHandleTurn);
+                // DebugPrintf("actionDonePlayer = %d",actionDonePlayer);
+                // DebugPrintf("actionDoneEnemy = %d",actionDoneEnemy);
+                // DebugPrintf("stopHandleTurn = %d",stopHandleTurn);
 
             }
     
@@ -5928,7 +5928,7 @@ void RunBattleScriptCommands_PopCallbacksStack(void)
     if(idFuncRun != gCurrentActionFuncId)
     {
         idFuncRun = gCurrentActionFuncId;
-        DebugPrintf("RunBattleScriptCommands_PopCallbacksStack: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
+        // DebugPrintf("RunBattleScriptCommands_PopCallbacksStack: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
     }
     if (gCurrentActionFuncId == B_ACTION_TRY_FINISH || gCurrentActionFuncId == B_ACTION_FINISHED)
     {
@@ -5945,7 +5945,7 @@ void RunBattleScriptCommands_PopCallbacksStack(void)
         else if(idFuncRun != gCurrentActionFuncId)
         {
             idFuncRun = gCurrentActionFuncId;
-            DebugPrintf("!gBattleControllerExecFlags PopCallbacksStack: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
+            // DebugPrintf("!gBattleControllerExecFlags PopCallbacksStack: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
         }
     }
 }
@@ -5955,7 +5955,7 @@ void RunBattleScriptCommands(void)
     if(idFuncPop != gCurrentActionFuncId)
     {
         idFuncPop = gCurrentActionFuncId;
-        DebugPrintf("RunBattleScriptCommands: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
+        // DebugPrintf("RunBattleScriptCommands: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
     }
     if (gBattleControllerExecFlags == 0) {
         gBattleScriptingCommandsTable[gBattlescriptCurrInstr[0]]();
@@ -5963,6 +5963,6 @@ void RunBattleScriptCommands(void)
     else if(idFuncPop != gCurrentActionFuncId)
     {
         idFuncPop = gCurrentActionFuncId;
-        DebugPrintf("!gBattleControllerExecFlags: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
+        // DebugPrintf("!gBattleControllerExecFlags: gCurrentActionFuncId = %d (%s)", gCurrentActionFuncId, GetTurnActionFuncName(gCurrentActionFuncId));
     }
 }

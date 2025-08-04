@@ -323,9 +323,9 @@ CFLAGS += -DSKIP_TEXT
 CPPFLAGS += -DSKIP_TEXT
 endif
 
-ifeq ($(DNO_DEBUG),1)
-CFLAGS += -DNO_DEBUG
-CPPFLAGS += -DNO_DEBUG
+ifeq ($(DNO_DEBUG_PRINT),1)
+CFLAGS += -DNO_DEBUG_PRINT
+CPPFLAGS += -DNO_DEBUG_PRINT
 endif
 
 # The dep rules have to be explicit or else missing files won't be reported.

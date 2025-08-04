@@ -36,6 +36,7 @@ static void IntrDummy(void);
 EWRAM_DATA u32 testBuffer = 3;
 EWRAM_DATA u32 listTestBuffer[42];
 EWRAM_DATA u16 stopTestReadWrite = 0;
+EWRAM_DATA u16 stopTestReadWriteTwo = 0;
 #endif
 
 const u8 gGameVersion = GAME_VERSION;
@@ -105,6 +106,10 @@ void AgbMain(void)
     testBuffer = 3;
     stopTestReadWrite = 1;
     #endif
+
+    #ifdef OBSERVED_DATA
+    stopTestReadWriteTwo = 1;
+    #endif
     // PrintPokemonData(SPECIES_BULBASAUR);
     // Modern compilers are liberal with the stack on entry to this function,
     // so RegisterRamReset may crash if it resets IWRAM.
@@ -146,6 +151,7 @@ void AgbMain(void)
     AGBPrintInit();
 #endif
 #endif
+
     for (;;)
     {
         ReadKeys();

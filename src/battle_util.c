@@ -86,7 +86,7 @@ void HandleAction_UseMove(void)
     if (*(&gBattleStruct->absentBattlerFlags) & gBitTable[gBattlerAttacker])
     {
         gCurrentActionFuncId = B_ACTION_FINISHED;
-        DebugPrintf("HandleAction_UseMove: gBattlerAttacker %d is absent, skipping action.", gBattlerAttacker);
+        // DebugPrintf("HandleAction_UseMove: gBattlerAttacker %d is absent, skipping action.", gBattlerAttacker);
         return;
     }
 
@@ -291,8 +291,8 @@ void HandleAction_UseMove(void)
         BattleArena_AddMindPoints(gBattlerAttacker);
 
     gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
-    DebugPrintf("HandleAction_UseMove: gBattlerAttacker = %d, gBattlerTarget = %d, gCurrentMove = %d",
-               gBattlerAttacker, gBattlerTarget, gCurrentMove);
+    // DebugPrintf("HandleAction_UseMove: gBattlerAttacker = %d, gBattlerTarget = %d, gCurrentMove = %d",
+    //            gBattlerAttacker, gBattlerTarget, gCurrentMove);
 }
 
 void HandleAction_Switch(void)
@@ -1930,7 +1930,7 @@ bool8 HandleFaintedMonActions(void)
                  && !(gBattleStruct->givenExpMons & gBitTable[gBattlerPartyIndexes[gBattleStruct->faintedActionsBattlerId]])
                  && !(gAbsentBattlerFlags & gBitTable[gBattleStruct->faintedActionsBattlerId]))
                 {
-                    DebugPrintf("  Battler %d: Fainted and not given EXP, executing BattleScript_GiveExp.", gBattleStruct->faintedActionsBattlerId);
+                    // DebugPrintf("  Battler %d: Fainted and not given EXP, executing BattleScript_GiveExp.", gBattleStruct->faintedActionsBattlerId);
                     BattleScriptExecute(BattleScript_GiveExp);
                     gBattleStruct->faintedActionsState = 2;
                     return TRUE;
