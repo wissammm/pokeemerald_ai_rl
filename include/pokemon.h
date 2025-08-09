@@ -391,8 +391,13 @@ extern const u16 gUnionRoomFacilityClasses[];
 extern const struct SpriteTemplate gBattlerSpriteTemplates[];
 extern const s8 gNatureStatTable[][5];
 
+#ifdef OBSERVED_DATA
 void PrintPokemonData(u16 species);
 void PrintPokemonsData();
+void PrintMovesAttributes(u16 moveId);
+void PrintMovesData();
+#endif //OBSERVED_DATA
+
 
 void ZeroBoxMonData(struct BoxPokemon *boxMon);
 void ZeroMonData(struct Pokemon *mon);

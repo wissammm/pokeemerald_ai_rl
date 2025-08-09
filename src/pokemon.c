@@ -7254,4 +7254,26 @@ void PrintPokemonsData(){
     }
 }
 
+void PrintMovesAttributes(u16 moveId) {
+    DebugPrintf("moveName: %S\nid: %d\neffect: %d\npower: %d\ntype: %d\naccuracy: %d\npp: %d\npriority: %d\nsecondaryEffectChance: %d\ntarget: %d\nflags: %d\n",
+        gMoveNames[moveId],
+        moveId,
+        gBattleMoves[moveId].effect,
+        gBattleMoves[moveId].power,
+        gBattleMoves[moveId].type,
+        gBattleMoves[moveId].accuracy,
+        gBattleMoves[moveId].pp,
+        gBattleMoves[moveId].priority,
+        gBattleMoves[moveId].secondaryEffectChance,
+        gBattleMoves[moveId].target,
+        gBattleMoves[moveId].flags
+    );
+}
+
+void PrintMovesData() {
+    for (int i = 0; i < MOVES_COUNT; ++i) {
+        PrintMovesAttributes(i);
+    }
+}
+
 #endif // OBSERVED_DATA
