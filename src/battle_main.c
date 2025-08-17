@@ -771,7 +771,7 @@ static void CB2_InitBattleInternal(void)
         if (enemyTeam[0]==0){
             DebugPrintf("Should not be here");
             u32 _enemyTeam[] =  {
-           7, 2, 45, 45, 45, 45, 10, 0,
+            7, 2, 45, 45, 45, 45, 10, 0,
             26, 10, 8, 3, 4, 2, 100,  0,    
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0,
@@ -4660,8 +4660,13 @@ static void HandleTurnActionSelectionState(void)
 
                         
                         #ifdef OBSERVED_DATA
-
-                       
+                        if(gActiveBattler == ENEMY){
+                             #ifdef ENEMY_ONLY
+                             BtlController_EmitChooseMove(B_COMM_TO_CONTROLLER, (gBattleTypeFlags & BATTLE_TYPE_DOUBLE) != 0, FALSE, &moveInfo);
+                             MarkBattlerForControllerExec(gActiveBattler);
+                             break;
+                             #endif
+                        }
                         actionDone = (gActiveBattler==PLAYER)? actionDonePlayer : actionDoneEnemy;
                         u16 move = gBattleMons[gActiveBattler].moves[actionDone];
                         u8 moveTarget;
@@ -4744,10 +4749,20 @@ static void HandleTurnActionSelectionState(void)
                             BtlController_EmitChoosePokemon(B_COMM_TO_CONTROLLER, PARTY_ACTION_CHOOSE_MON, *(gBattleStruct->monToSwitchIntoId + 1), ABILITY_NONE, gBattleStruct->battlerPartyOrders[gActiveBattler]);
                         else{
                             #ifdef OBSERVED_DATA
-                            gChosenActionByBattler[gActiveBattler] = B_ACTION_SWITCH;
-                            *(gBattleStruct->monToSwitchIntoId + gActiveBattler)  = (gActiveBattler == PLAYER) ? actionDonePlayer -4 : actionDoneEnemy-4;
-                            *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
-                            gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
+
+                            bool8 enemyPlay = TRUE;
+                            #ifdef ENEMY_ONLY
+                            enemyPlay = FALSE;
+                            #endif
+                            if((enemyPlay && gActiveBattler == ENEMY) || gActiveBattler == PLAYER){
+                                gChosenActionByBattler[gActiveBattler] = B_ACTION_SWITCH;
+                                *(gBattleStruct->monToSwitchIntoId + gActiveBattler)  = (gActiveBattler == PLAYER) ? actionDonePlayer -4 : actionDoneEnemy-4;
+                                *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
+                                gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
+                            }
+                            else{
+                                BtlController_EmitChoosePokemon(B_COMM_TO_CONTROLLER, PARTY_ACTION_CHOOSE_MON, PARTY_SIZE, ABILITY_NONE, gBattleStruct->battlerPartyOrders[gActiveBattler]);
+                            }
                             // DebugPrintf("gActiveBattler: %d, monToSwitchIntoId: %d\n", gActiveBattler, *(gBattleStruct->monToSwitchIntoId + gActiveBattler));
                             #else
                             BtlController_EmitChoosePokemon(B_COMM_TO_CONTROLLER, PARTY_ACTION_CHOOSE_MON, PARTY_SIZE, ABILITY_NONE, gBattleStruct->battlerPartyOrders[gActiveBattler]);
@@ -4757,6 +4772,10 @@ static void HandleTurnActionSelectionState(void)
                     }
                     #ifndef OBSERVED_DATA
                     MarkBattlerForControllerExec(gActiveBattler);
+                    #endif
+                    #ifdef ENEMY_ONLY
+                    if(gActiveBattler == ENEMY){
+                        MarkBattlerForControllerExec(gActiveBattler);
                     #endif
                     break;
                 case B_ACTION_SAFARI_BALL:
@@ -5048,71 +5067,76 @@ static void HandleTurnActionSelectionState(void)
                 DumpLegalSwitch(PLAYER,legalSwitchActionsPlayer);
                 DumpLegalSwitch(ENEMY,legalSwitchActionsEnemy);
                 DumpMonData();
-                int legalMoves[MAX_MON_MOVES], legalSwitches[PARTY_SIZE];
-                int numLegalMoves = 0, numLegalSwitches = 0;
+                // int legalMoves[MAX_MON_MOVES], legalSwitches[PARTY_SIZE];
+                // int numLegalMoves = 0, numLegalSwitches = 0;
 
-                // Collect legal moves
-                for (i = 0; i < MAX_MON_MOVES; i++)
-                    if (legalMoveActionsPlayer[i])
-                        legalMoves[numLegalMoves++] = i;
+                // // Collect legal moves
+                // for (i = 0; i < MAX_MON_MOVES; i++)
+                //     if (legalMoveActionsPlayer[i])
+                //         legalMoves[numLegalMoves++] = i;
 
-                // Collect legal switches
-                for (i = 0; i < PARTY_SIZE; i++)
-                    if (legalSwitchActionsPlayer[i])
-                        legalSwitches[numLegalSwitches++] = i;
+                // // Collect legal switches
+                // for (i = 0; i < PARTY_SIZE; i++)
+                //     if (legalSwitchActionsPlayer[i])
+                //         legalSwitches[numLegalSwitches++] = i;
 
-                // Decide: move or switch (if both possible, 50/50)
-                u8 canSwitch = numLegalSwitches > 0;
-                u8 canMove = numLegalMoves > 0;
-                u8 doSwitch = canSwitch && (!canMove || (Random2() & 1));
-                int idx = 0;
-                if (doSwitch)
-                {
-                    // Pick a random legal switch (actionDonePlayer = 4..9)
-                     idx = legalSwitches[Random2() % numLegalSwitches];
-                    actionDonePlayer = idx + 4;
-                }
-                else if (canMove)
-                {
-                    // Pick a random legal move (actionDonePlayer = 0..3)
-                     idx = legalMoves[Random2() % numLegalMoves];
-                    actionDonePlayer = idx;
-                }
-                else
-                {
-                    // No legal moves or switches, fallback
-                    actionDonePlayer = 0;
-                }
-                 legalMoves[MAX_MON_MOVES], legalSwitches[PARTY_SIZE];
-                 numLegalMoves = 0, numLegalSwitches = 0;
+                // // Decide: move or switch (if both possible, 50/50)
+                // u8 canSwitch = numLegalSwitches > 0;
+                // u8 canMove = numLegalMoves > 0;
+                // u8 doSwitch = canSwitch && (!canMove || (Random2() & 1));
+                // int idx = 0;
+                // if (doSwitch)
+                // {
+                //     // Pick a random legal switch (actionDonePlayer = 4..9)
+                //      idx = legalSwitches[Random2() % numLegalSwitches];
+                //     actionDonePlayer = idx + 4;
+                // }
+                // else if (canMove)
+                // {
+                //     // Pick a random legal move (actionDonePlayer = 0..3)
+                //      idx = legalMoves[Random2() % numLegalMoves];
+                //     actionDonePlayer = idx;
+                // }
+                // else
+                // {
+                //     // No legal moves or switches, fallback
+                //     actionDonePlayer = 0;
+                // }
+                //  legalMoves[MAX_MON_MOVES], legalSwitches[PARTY_SIZE];
+                //  numLegalMoves = 0, numLegalSwitches = 0;
 
-                for (i = 0; i < MAX_MON_MOVES; i++)
-                    if (legalMoveActionsEnemy[i])
-                        legalMoves[numLegalMoves++] = i;
+                // for (i = 0; i < MAX_MON_MOVES; i++)
+                //     if (legalMoveActionsEnemy[i])
+                //         legalMoves[numLegalMoves++] = i;
 
-                for (i = 0; i < PARTY_SIZE; i++)
-                    if (legalSwitchActionsEnemy[i])
-                        legalSwitches[numLegalSwitches++] = i;
+                // for (i = 0; i < PARTY_SIZE; i++)
+                //     if (legalSwitchActionsEnemy[i])
+                //         legalSwitches[numLegalSwitches++] = i;
 
-                 canSwitch = numLegalSwitches > 0;
-                 canMove = numLegalMoves > 0;
-                 doSwitch = canSwitch && (!canMove || (Random2() % 100 >= 80));
+                //  canSwitch = numLegalSwitches > 0;
+                //  canMove = numLegalMoves > 0;
+                //  doSwitch = canSwitch && (!canMove || (Random2() % 100 >= 80));
 
-                if (doSwitch)
-                {
-                     idx = legalSwitches[Random2() % numLegalSwitches];
-                    actionDoneEnemy = idx + 4;
-                }
-                else if (canMove)
-                {
-                     idx = legalMoves[Random2() % numLegalMoves];
-                    actionDoneEnemy = idx;
-                }
-                else
-                {
-                    actionDoneEnemy = 0;
-                }
+                // if (doSwitch)
+                // {
+                //      idx = legalSwitches[Random2() % numLegalSwitches];
+                //     actionDoneEnemy = idx + 4;
+                // }
+                // else if (canMove)
+                // {
+                //      idx = legalMoves[Random2() % numLegalMoves];
+                //     actionDoneEnemy = idx;
+                // }
+                // else
+                // {
+                //     actionDoneEnemy = 0;
+                // }
+
+                #ifdef ENEMY_ONLY
+                stopHandleTurnPlayer = 1;
+                #else
                 stopHandleTurn = 1;
+                #endif
                 // DebugPrintf("actionDonePlayer = %d",actionDonePlayer);
                 // DebugPrintf("actionDoneEnemy = %d",actionDoneEnemy);
                 // DebugPrintf("stopHandleTurn = %d",stopHandleTurn);

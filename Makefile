@@ -307,6 +307,13 @@ ifeq ($(DINFO),1)
 override CFLAGS += -g
 endif
 
+
+ifeq ($(DENEMY_ONLY),1)
+CFLAGS += -DENEMY_ONLY
+CPPFLAGS += -DENEMY_ONLY
+endif
+
+
 ifeq ($(DOBSERVED_DATA),1)
 CFLAGS += -DOBSERVED_DATA
 CPPFLAGS += -DOBSERVED_DATA
