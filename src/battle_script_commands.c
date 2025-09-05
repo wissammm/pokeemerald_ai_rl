@@ -5244,7 +5244,6 @@ static void Cmd_openpartyscreen(void)
             }
             else
             {
-                #ifndef ENEMY_ONLY
                 DumpLegalSwitchBattleScript(gActiveBattler, legalSwitchActionsEnemy);
                 for( i = 0 ; i < MAX_MON_MOVES; i++)
                 {
@@ -5263,56 +5262,17 @@ static void Cmd_openpartyscreen(void)
 
                 *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = actionDoneEnemy - 4;
                 gBattlerPartyIndexes[gActiveBattler] = actionDoneEnemy - 4;
-
-                #endif
-
             }
-            bool8 isEnemyPlay = TRUE;
-            #ifdef ENEMY_ONLY
-            isEnemyPlay = FALSE;
-            #endif
-            if(gActiveBattler == PLAYER || (isEnemyPlay && gActiveBattler == ENEMY)){
-                gBattleStruct->field_93 |= gBitTable[gActiveBattler]; // Mark as handled
-                gSpecialStatuses[gActiveBattler].faintedHasReplacement = TRUE;
-                BtlController_EmitChosenMonReturnValue(B_COMM_TO_ENGINE,*(gBattleStruct->monToSwitchIntoId + gActiveBattler), gBattleBufferB[gActiveBattler]);
-                gBattlescriptCurrInstr += 6;
-                gActiveBattler = GetBattlerAtPosition(BATTLE_OPPOSITE(GetBattlerPosition(battler)));
-                if (gAbsentBattlerFlags & gBitTable[gActiveBattler])
-                    gActiveBattler ^= BIT_FLANK;
-            }
-            else{
-                *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
-                *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = PARTY_SIZE;
-                gBattleStruct->field_93 &= ~(gBitTable[gActiveBattler]);
-                DebugPrintf("Cmd_openpartyscreen ");
-                BtlController_EmitChoosePokemon(B_COMM_TO_CONTROLLER, hitmarkerFaintBits, *(gBattleStruct->monToSwitchIntoId + BATTLE_PARTNER(gActiveBattler)), ABILITY_NONE, gBattleStruct->battlerPartyOrders[gActiveBattler]);
-                MarkBattlerForControllerExec(gActiveBattler);
-                gBattlescriptCurrInstr += 6;
-                    
-                if (GetBattlerPosition(gActiveBattler) == B_POSITION_PLAYER_LEFT && gBattleResults.playerSwitchesCounter < 255)
-                    gBattleResults.playerSwitchesCounter++;
 
-                if (gBattleTypeFlags & BATTLE_TYPE_MULTI)
-                {
-                    for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
-                    {
-                        if (gActiveBattler != battler)
-                        {
-                            BtlController_EmitLinkStandbyMsg(B_COMM_TO_CONTROLLER, LINK_STANDBY_MSG_ONLY, FALSE);
-                            MarkBattlerForControllerExec(gActiveBattler);
-                        }
-                    }
-                }
-                else
-                {
-                    gActiveBattler = GetBattlerAtPosition(BATTLE_OPPOSITE(GetBattlerPosition(battler)));
-                    if (gAbsentBattlerFlags & gBitTable[gActiveBattler])
-                        gActiveBattler ^= BIT_FLANK;
-
-                    BtlController_EmitLinkStandbyMsg(B_COMM_TO_CONTROLLER, LINK_STANDBY_MSG_ONLY, FALSE);
-                    MarkBattlerForControllerExec(gActiveBattler);
-                }
-            }
+            
+            gBattleStruct->field_93 |= gBitTable[gActiveBattler]; // Mark as handled
+            gSpecialStatuses[gActiveBattler].faintedHasReplacement = TRUE;
+            BtlController_EmitChosenMonReturnValue(B_COMM_TO_ENGINE,*(gBattleStruct->monToSwitchIntoId + gActiveBattler), gBattleBufferB[gActiveBattler]);
+            gBattlescriptCurrInstr += 6;
+            gActiveBattler = GetBattlerAtPosition(BATTLE_OPPOSITE(GetBattlerPosition(battler)));
+            if (gAbsentBattlerFlags & gBitTable[gActiveBattler])
+                gActiveBattler ^= BIT_FLANK;
+            
             #else
             gActiveBattler = battlerId;
             *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
