@@ -4438,20 +4438,23 @@ void DumpMonData(){
     s32 i;
    for (i = 0; i < PARTY_SIZE; i++) {
         DumpPartyMonData(&gPlayerParty[i], monDataPlayer + i * MON_DATA_U32_SIZE);
+
         if (gBattlerPartyIndexes[B_POSITION_PLAYER_LEFT] == i || 
             (gBattlersCount > 2 && gBattlerPartyIndexes[B_POSITION_PLAYER_RIGHT] == i)) {
             monDataPlayer[i * MON_DATA_U32_SIZE + STATUS2_OFFSET] = gBattleMons[B_POSITION_PLAYER_LEFT].status2;
-            monDataPlayer[i * MON_DATA_U32_SIZE] = TRUE;
+            monDataPlayer[i * MON_DATA_U32_SIZE +IS_ACTIVE_OFFSET ] = TRUE;
         }
+
     }
 
     for (i = 0; i < PARTY_SIZE; i++) {
+
         DumpPartyMonData(&gEnemyParty[i], monDataEnemy + i * MON_DATA_U32_SIZE);
 
         if (gBattlerPartyIndexes[B_POSITION_OPPONENT_LEFT] == i || 
             (gBattlersCount > 2 && gBattlerPartyIndexes[B_POSITION_OPPONENT_RIGHT] == i)) {
             monDataEnemy[i * MON_DATA_U32_SIZE + STATUS2_OFFSET] = gBattleMons[B_POSITION_OPPONENT_LEFT].status2;
-            monDataEnemy[i * MON_DATA_U32_SIZE] = TRUE;
+            monDataEnemy[i * MON_DATA_U32_SIZE + IS_ACTIVE_OFFSET] = TRUE;
         }
     }
 }

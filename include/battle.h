@@ -10,6 +10,7 @@
 // Data to retrives
 #define MON_DATA_U32_SIZE 28
 #define STATUS2_OFFSET 18
+#define IS_ACTIVE_OFFSET 1
 #define SIZE_OF_TEAM_PARAM 8
 
 
