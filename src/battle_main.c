@@ -4461,11 +4461,11 @@ void DumpMonData(){
             monDataEnemy[i * MON_DATA_U32_SIZE + STATUS2_OFFSET] = gBattleMons[B_POSITION_OPPONENT_LEFT].status2;
             monDataEnemy[i * MON_DATA_U32_SIZE + IS_ACTIVE_OFFSET] = TRUE;
 
-            monDataEnemy[i * MON_DATA_U32_SIZE + 2] = (monDataEnemy[2] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_ATK]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_RIGHT].statStages[STAT_ATK]][1];
-            monDataEnemy[i * MON_DATA_U32_SIZE + 3] = (monDataEnemy[3] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_DEF]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_RIGHT].statStages[STAT_DEF]][1];
-            monDataEnemy[i * MON_DATA_U32_SIZE + 4] = (monDataEnemy[4] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPEED]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_RIGHT].statStages[STAT_SPEED]][1];
-            monDataEnemy[i * MON_DATA_U32_SIZE + 5] = (monDataEnemy[5] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPATK]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_RIGHT].statStages[STAT_SPATK]][1];
-            monDataEnemy[i * MON_DATA_U32_SIZE + 6] = (monDataEnemy[6] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPDEF]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_RIGHT].statStages[STAT_SPDEF]][1];
+            monDataEnemy[i * MON_DATA_U32_SIZE + 2] = (monDataEnemy[2] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_ATK]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_ATK]][1];
+            monDataEnemy[i * MON_DATA_U32_SIZE + 3] = (monDataEnemy[3] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_DEF]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_DEF]][1];
+            monDataEnemy[i * MON_DATA_U32_SIZE + 4] = (monDataEnemy[4] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPEED]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPEED]][1];
+            monDataEnemy[i * MON_DATA_U32_SIZE + 5] = (monDataEnemy[5] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPATK]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPATK]][1];
+            monDataEnemy[i * MON_DATA_U32_SIZE + 6] = (monDataEnemy[6] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPDEF]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPDEF]][1];
         }
     }
 }
