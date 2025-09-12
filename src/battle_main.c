@@ -771,15 +771,15 @@ static void CB2_InitBattleInternal(void)
         if (enemyTeam[0]==0){
             DebugPrintf("Should not be here");
             u32 _enemyTeam[] =  {
-           7, 2, 45, 45, 45, 45, 10, 0,
-            26, 10, 8, 3, 4, 2, 100,  0,    
+           8, 2, 45, 45, 45, 45, 10, 0,
+            8, 10, 8, 3, 4, 2, 100,  0,    
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0
             };
             u32 _playerTeam[] = {
-            25, 10, 84, 84, 84, 84, 100,0,  
+            7, 10, 45, 45, 45, 45, 100,0,  
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0,
@@ -4442,9 +4442,14 @@ void DumpMonData(){
         if (gBattlerPartyIndexes[B_POSITION_PLAYER_LEFT] == i || 
             (gBattlersCount > 2 && gBattlerPartyIndexes[B_POSITION_PLAYER_RIGHT] == i)) {
             monDataPlayer[i * MON_DATA_U32_SIZE + STATUS2_OFFSET] = gBattleMons[B_POSITION_PLAYER_LEFT].status2;
-            monDataPlayer[i * MON_DATA_U32_SIZE +IS_ACTIVE_OFFSET ] = TRUE;
+            monDataPlayer[i * MON_DATA_U32_SIZE + IS_ACTIVE_OFFSET ] = TRUE;
+            
+            monDataPlayer[i * MON_DATA_U32_SIZE + 2] = (monDataPlayer[2] * gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_ATK]][0]) / gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_ATK]][1];
+            monDataPlayer[i * MON_DATA_U32_SIZE + 3] = (monDataPlayer[3] * gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_DEF]][0]) / gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_DEF]][1];
+            monDataPlayer[i * MON_DATA_U32_SIZE + 4] = (monDataPlayer[4] * gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_SPEED]][0]) / gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_SPEED]][1];
+            monDataPlayer[i * MON_DATA_U32_SIZE + 5] = (monDataPlayer[5] * gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_SPATK]][0]) / gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_SPATK]][1];
+            monDataPlayer[i * MON_DATA_U32_SIZE + 6] = (monDataPlayer[6] * gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_SPDEF]][0]) / gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_SPDEF]][1];
         }
-
     }
 
     for (i = 0; i < PARTY_SIZE; i++) {
@@ -4455,6 +4460,12 @@ void DumpMonData(){
             (gBattlersCount > 2 && gBattlerPartyIndexes[B_POSITION_OPPONENT_RIGHT] == i)) {
             monDataEnemy[i * MON_DATA_U32_SIZE + STATUS2_OFFSET] = gBattleMons[B_POSITION_OPPONENT_LEFT].status2;
             monDataEnemy[i * MON_DATA_U32_SIZE + IS_ACTIVE_OFFSET] = TRUE;
+
+            monDataEnemy[i * MON_DATA_U32_SIZE + 2] = (monDataEnemy[2] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_ATK]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_RIGHT].statStages[STAT_ATK]][1];
+            monDataEnemy[i * MON_DATA_U32_SIZE + 3] = (monDataEnemy[3] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_DEF]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_RIGHT].statStages[STAT_DEF]][1];
+            monDataEnemy[i * MON_DATA_U32_SIZE + 4] = (monDataEnemy[4] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPEED]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_RIGHT].statStages[STAT_SPEED]][1];
+            monDataEnemy[i * MON_DATA_U32_SIZE + 5] = (monDataEnemy[5] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPATK]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_RIGHT].statStages[STAT_SPATK]][1];
+            monDataEnemy[i * MON_DATA_U32_SIZE + 6] = (monDataEnemy[6] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPDEF]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_RIGHT].statStages[STAT_SPDEF]][1];
         }
     }
 }
@@ -5115,7 +5126,9 @@ static void HandleTurnActionSelectionState(void)
                 {
                     actionDoneEnemy = 0;
                 }
+
                 stopHandleTurn = 1;
+                
                 // DebugPrintf("actionDonePlayer = %d",actionDonePlayer);
                 // DebugPrintf("actionDoneEnemy = %d",actionDoneEnemy);
                 // DebugPrintf("stopHandleTurn = %d",stopHandleTurn);
