@@ -17,8 +17,8 @@ void DumpPartyMonData(struct Pokemon *mon, u32 *dst) {
 
     dst[7] = GetMonData(mon, MON_DATA_ABILITY_NUM, NULL);
 
-    dst[8] = gSpeciesInfo[dst[1]].types[0];  // type1 from species
-    dst[9] = gSpeciesInfo[dst[1]].types[1];  // type2 from species
+    dst[8] = gSpeciesInfo[dst[0]].types[0];  // type1 from species
+    dst[9] = gSpeciesInfo[dst[0]].types[1];  // type2 from species
     // Moves (sequential indices)
 
     dst[10] = GetMonData(mon, MON_DATA_HP, NULL);
@@ -37,5 +37,8 @@ void DumpPartyMonData(struct Pokemon *mon, u32 *dst) {
     for (i = 0; i < MAX_MON_MOVES; i+=2)
         dst[20 + i] = GetMonData(mon, MON_DATA_MOVE1 + i, NULL);
         dst[20 + i + 1] = GetMonData(mon, MON_DATA_PP1 + i, NULL);
-
 }
+
+// void DumpPartyMonDataActive(){
+
+// }

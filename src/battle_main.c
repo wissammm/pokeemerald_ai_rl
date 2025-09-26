@@ -771,16 +771,16 @@ static void CB2_InitBattleInternal(void)
         if (enemyTeam[0]==0){
             DebugPrintf("Should not be here");
             u32 _enemyTeam[] =  {
-           8, 2, 45, 45, 45, 45, 10, 0,
-            8, 10, 8, 3, 4, 2, 100,  0,    
+           24, 10, 7, 7, 7, 7, 50, 0,
+            89, 10, 24, 24, 24, 24, 75,  0,    
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0
             };
             u32 _playerTeam[] = {
-            7, 10, 45, 45, 45, 45, 100,0,  
-            0, 10, 0, 0, 0, 0, 0,0,
+            121, 17, 59, 59, 59, 59, 100,0,  
+            15, 17, 60, 60, 60, 60, 100,0,
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0,
@@ -4473,8 +4473,6 @@ void DumpLegalMoves(int gActiveBattler, u16 *dst){
     s32 i;
 
     u8 unusableMoves = CheckMoveLimitations(gActiveBattler, 0, 0xFF);
-    
-
     for (i = 0; i < MAX_MON_MOVES; i++) {
         u16 move = gBattleMons[gActiveBattler].moves[i];
         
@@ -5126,11 +5124,8 @@ static void HandleTurnActionSelectionState(void)
                 {
                     actionDoneEnemy = 0;
                 }
-
                 stopHandleTurn = 1;
                 
-                // DebugPrintf("actionDonePlayer = %d",actionDonePlayer);
-                // DebugPrintf("actionDoneEnemy = %d",actionDoneEnemy);
                 // DebugPrintf("stopHandleTurn = %d",stopHandleTurn);
 
             }
