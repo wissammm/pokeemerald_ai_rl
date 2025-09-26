@@ -34,9 +34,10 @@ void DumpPartyMonData(struct Pokemon *mon, u32 *dst) {
     dst[19] = 0;// Status3
 
 
-    for (i = 0; i < MAX_MON_MOVES; i+=2)
-        dst[20 + i] = GetMonData(mon, MON_DATA_MOVE1 + i, NULL);
-        dst[20 + i + 1] = GetMonData(mon, MON_DATA_PP1 + i, NULL);
+    for (i = 0; i < MAX_MON_MOVES; i++) {
+        dst[20 + i*2] = GetMonData(mon, MON_DATA_MOVE1 + i, NULL);
+        dst[20 + i*2 + 1] = GetMonData(mon, MON_DATA_PP1 + i, NULL);
+    }
 }
 
 // void DumpPartyMonDataActive(){

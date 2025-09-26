@@ -809,7 +809,6 @@ static void CB2_InitBattleInternal(void)
                     SetMonData(&gEnemyParty[i], MON_DATA_HP, &hp);
                     SetMonData(&gEnemyParty[i], MON_DATA_HELD_ITEM, &_enemyTeam[i * SIZE_OF_TEAM_PARAM + ITEM_ID_OFFSET]);
                     MonRestorePP(&gEnemyParty[i]);
-                    
                 }
 
                 if(_playerTeam[i * SIZE_OF_TEAM_PARAM + ID_OFFSET] != 0){
