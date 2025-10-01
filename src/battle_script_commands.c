@@ -52,6 +52,11 @@
 #include "constants/songs.h"
 #include "constants/trainers.h"
 
+#ifdef OBSERVED_DATA
+#include "data_mon_dump.h"
+#endif
+
+
 extern const u8 *const gBattleScriptsForMoveEffects[];
 
 #define DEFENDER_IS_PROTECTED ((gProtectStructs[gBattlerTarget].protected) && (gBattleMoves[gCurrentMove].flags & FLAG_PROTECT_AFFECTED))
@@ -5213,12 +5218,27 @@ static void Cmd_openpartyscreen(void)
         }
         else
         {
-
+            u8 i;
            
             #ifdef OBSERVED_DATA
+
             // Auto-select the first valid Pokémon to switch in
             gActiveBattler = battler;
-            u8 i;
+            for (i = 0; i < PARTY_SIZE; i++) {
+                DumpPartyMonData(&gPlayerParty[i], monDataPlayer + i * MON_DATA_U32_SIZE);
+                if (gBattlerPartyIndexes[B_POSITION_PLAYER_LEFT] == i || 
+                    (gBattlersCount > 2 && gBattlerPartyIndexes[B_POSITION_PLAYER_RIGHT] == i)) {
+                    DumpPartyMonDataActive(&gBattleMons[B_POSITION_PLAYER_LEFT], (u8 *)gStatStageRatios, monDataPlayer + i * MON_DATA_U32_SIZE);
+                }
+            }
+
+            for (i = 0; i < PARTY_SIZE; i++) {
+                DumpPartyMonData(&gEnemyParty[i], monDataEnemy + i * MON_DATA_U32_SIZE);
+                if (gBattlerPartyIndexes[B_POSITION_OPPONENT_LEFT] == i || 
+                    (gBattlersCount > 2 && gBattlerPartyIndexes[B_POSITION_OPPONENT_RIGHT] == i)) {
+                    DumpPartyMonDataActive(&gBattleMons[B_POSITION_OPPONENT_LEFT], (u8 *)gStatStageRatios, monDataEnemy + i * MON_DATA_U32_SIZE);
+                }
+            }
             if(gActiveBattler == PLAYER)
             {
 

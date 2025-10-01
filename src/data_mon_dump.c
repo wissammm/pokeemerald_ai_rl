@@ -40,6 +40,38 @@ void DumpPartyMonData(struct Pokemon *mon, u32 *dst) {
     }
 }
 
-// void DumpPartyMonDataActive(){
-
-// }
+void DumpPartyMonDataActive(struct BattlePokemon *mon, u8 *gStatStageRatios, u32 *dst) {
+    int i;
+    u8 (*ratios)[2] = (u8 (*)[2])gStatStageRatios; // Cast to 2D array for proper access
+    
+    dst[0] = mon->species;
+    dst[1] = TRUE;  
+    
+    dst[2] = (mon->attack * ratios[mon->statStages[STAT_ATK]][0]) / ratios[mon->statStages[STAT_ATK]][1];
+    dst[3] = (mon->defense * ratios[mon->statStages[STAT_DEF]][0]) / ratios[mon->statStages[STAT_DEF]][1];
+    dst[4] = (mon->speed * ratios[mon->statStages[STAT_SPEED]][0]) / ratios[mon->statStages[STAT_SPEED]][1];
+    dst[5] = (mon->spAttack * ratios[mon->statStages[STAT_SPATK]][0]) / ratios[mon->statStages[STAT_SPATK]][1];
+    dst[6] = (mon->spDefense * ratios[mon->statStages[STAT_SPDEF]][0]) / ratios[mon->statStages[STAT_SPDEF]][1];
+    
+    dst[7] = mon->ability;
+    dst[8] = mon->types[0];
+    dst[9] = mon->types[1];
+    
+    dst[10] = mon->hp;
+    dst[11] = mon->level;
+    dst[12] = mon->friendship;
+    dst[13] = mon->maxHP;
+    
+    dst[14] = mon->item;
+    dst[15] = mon->ppBonuses;
+    dst[16] = mon->personality;
+    dst[17] = mon->status1;
+    
+    dst[18] = mon->status2;
+    dst[19] = 0;  
+    
+    for (i = 0; i < MAX_MON_MOVES; i++) {
+        dst[20 + i*2] = mon->moves[i];
+        dst[20 + i*2 + 1] = mon->pp[i];
+    }
+}

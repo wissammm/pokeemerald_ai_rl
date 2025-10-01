@@ -771,16 +771,16 @@ static void CB2_InitBattleInternal(void)
         if (enemyTeam[0]==0){
             DebugPrintf("Should not be here");
             u32 _enemyTeam[] =  {
-           24, 10, 7, 7, 7, 7, 50, 0,
-            89, 10, 24, 24, 24, 24, 75,  0,    
+           24, 99, 74, 34, 7, 9, 50, 0,
+            89, 99, 12, 24, 90, 24, 75,  0,    
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0
             };
             u32 _playerTeam[] = {
-            121, 17, 59, 59, 59, 59, 100,0,  
-            15, 17, 60, 60, 60, 60, 100,0,
+            121, 17, 12, 59, 11, 18, 100,0,  
+            15, 17, 22, 60, 30, 60, 100,0,
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0,
             0, 10, 0, 0, 0, 0, 0,0,
@@ -4435,39 +4435,23 @@ enum
 
 void DumpMonData(){
     s32 i;
-   for (i = 0; i < PARTY_SIZE; i++) {
+    for (i = 0; i < PARTY_SIZE; i++) {
         DumpPartyMonData(&gPlayerParty[i], monDataPlayer + i * MON_DATA_U32_SIZE);
-
         if (gBattlerPartyIndexes[B_POSITION_PLAYER_LEFT] == i || 
             (gBattlersCount > 2 && gBattlerPartyIndexes[B_POSITION_PLAYER_RIGHT] == i)) {
-            monDataPlayer[i * MON_DATA_U32_SIZE + STATUS2_OFFSET] = gBattleMons[B_POSITION_PLAYER_LEFT].status2;
-            monDataPlayer[i * MON_DATA_U32_SIZE + IS_ACTIVE_OFFSET ] = TRUE;
-            
-            monDataPlayer[i * MON_DATA_U32_SIZE + 2] = (monDataPlayer[2] * gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_ATK]][0]) / gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_ATK]][1];
-            monDataPlayer[i * MON_DATA_U32_SIZE + 3] = (monDataPlayer[3] * gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_DEF]][0]) / gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_DEF]][1];
-            monDataPlayer[i * MON_DATA_U32_SIZE + 4] = (monDataPlayer[4] * gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_SPEED]][0]) / gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_SPEED]][1];
-            monDataPlayer[i * MON_DATA_U32_SIZE + 5] = (monDataPlayer[5] * gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_SPATK]][0]) / gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_SPATK]][1];
-            monDataPlayer[i * MON_DATA_U32_SIZE + 6] = (monDataPlayer[6] * gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_SPDEF]][0]) / gStatStageRatios[gBattleMons[B_POSITION_PLAYER_LEFT].statStages[STAT_SPDEF]][1];
+            DumpPartyMonDataActive(&gBattleMons[B_POSITION_PLAYER_LEFT], (u8 *)gStatStageRatios, monDataPlayer + i * MON_DATA_U32_SIZE);
         }
     }
 
     for (i = 0; i < PARTY_SIZE; i++) {
-
         DumpPartyMonData(&gEnemyParty[i], monDataEnemy + i * MON_DATA_U32_SIZE);
-
         if (gBattlerPartyIndexes[B_POSITION_OPPONENT_LEFT] == i || 
             (gBattlersCount > 2 && gBattlerPartyIndexes[B_POSITION_OPPONENT_RIGHT] == i)) {
-            monDataEnemy[i * MON_DATA_U32_SIZE + STATUS2_OFFSET] = gBattleMons[B_POSITION_OPPONENT_LEFT].status2;
-            monDataEnemy[i * MON_DATA_U32_SIZE + IS_ACTIVE_OFFSET] = TRUE;
-
-            monDataEnemy[i * MON_DATA_U32_SIZE + 2] = (monDataEnemy[2] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_ATK]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_ATK]][1];
-            monDataEnemy[i * MON_DATA_U32_SIZE + 3] = (monDataEnemy[3] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_DEF]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_DEF]][1];
-            monDataEnemy[i * MON_DATA_U32_SIZE + 4] = (monDataEnemy[4] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPEED]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPEED]][1];
-            monDataEnemy[i * MON_DATA_U32_SIZE + 5] = (monDataEnemy[5] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPATK]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPATK]][1];
-            monDataEnemy[i * MON_DATA_U32_SIZE + 6] = (monDataEnemy[6] * gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPDEF]][0]) / gStatStageRatios[gBattleMons[B_POSITION_OPPONENT_LEFT].statStages[STAT_SPDEF]][1];
+            DumpPartyMonDataActive(&gBattleMons[B_POSITION_OPPONENT_LEFT], (u8 *)gStatStageRatios, monDataEnemy + i * MON_DATA_U32_SIZE);
         }
     }
 }
+
 void DumpLegalMoves(int gActiveBattler, u16 *dst){
     s32 i;
 
@@ -5123,6 +5107,7 @@ static void HandleTurnActionSelectionState(void)
                 {
                     actionDoneEnemy = 0;
                 }
+                
                 stopHandleTurn = 1;
                 
                 // DebugPrintf("stopHandleTurn = %d",stopHandleTurn);
