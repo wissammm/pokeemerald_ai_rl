@@ -65,6 +65,45 @@ void CopyBufferedValuesToGpuRegs(void)
 
 void SetGpuReg(u8 regOffset, u16 value)
 {
+    #ifdef SKIP_GRAPHICS
+    if (regOffset >= GPU_REG_BUF_SIZE)
+        return;
+
+    // Still keep the buffered value so higher-level code that reads GPU_REG_BUF works.
+    GPU_REG_BUF(regOffset) = value;
+
+    switch (regOffset)
+    {
+    case REG_OFFSET_DISPSTAT:   // ONLY allow DISPSTAT now
+        {
+            u16 vcount = REG_VCOUNT & 0xFF;
+            if ((vcount >= 161 && vcount <= 225) || (REG_DISPCNT & DISPCNT_FORCED_BLANK))
+            {
+                CopyBufferedValueToGpuReg(regOffset);
+            }
+            else
+            {
+                s32 i;
+                sGpuRegBufferLocked = TRUE;
+                for (i = 0; i < GPU_REG_BUF_SIZE && sGpuRegWaitingList[i] != EMPTY_SLOT; i++)
+                {
+                    if (sGpuRegWaitingList[i] == regOffset)
+                    {
+                        sGpuRegBufferLocked = FALSE;
+                        return;
+                    }
+                }
+                sGpuRegWaitingList[i] = regOffset;
+                sGpuRegBufferLocked = FALSE;
+            }
+        }
+        return;
+
+    default:
+        // All other registers (including DISPCNT) are ignored after buffering.
+        return;
+    }
+    #elif
     if (regOffset < GPU_REG_BUF_SIZE)
     {
         u16 vcount;
@@ -95,6 +134,8 @@ void SetGpuReg(u8 regOffset, u16 value)
             sGpuRegBufferLocked = FALSE;
         }
     }
+    #endif
+
 }
 
 void SetGpuReg_ForcedBlank(u8 regOffset, u16 value)

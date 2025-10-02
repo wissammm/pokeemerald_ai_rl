@@ -773,18 +773,19 @@ static void CB2_InitBattleInternal(void)
             u32 _enemyTeam[] =  {
            24, 99, 74, 34, 7, 9, 50, 0,
             89, 99, 12, 24, 90, 24, 75,  0,    
-            0, 10, 0, 0, 0, 0, 0,0,
-            0, 10, 0, 0, 0, 0, 0,0,
-            0, 10, 0, 0, 0, 0, 0,0,
-            0, 10, 0, 0, 0, 0, 0,0
+            15, 17, 22, 60, 30, 60, 100,0,
+            15, 17, 22, 60, 30, 60, 100,0,
+            15, 17, 22, 60, 30, 60, 100,0,
+            15, 17, 22, 60, 30, 60, 100,0,
+            
             };
             u32 _playerTeam[] = {
             121, 17, 12, 59, 11, 18, 100,0,  
             15, 17, 22, 60, 30, 60, 100,0,
-            0, 10, 0, 0, 0, 0, 0,0,
-            0, 10, 0, 0, 0, 0, 0,0,
-            0, 10, 0, 0, 0, 0, 0,0,
-            0, 10, 0, 0, 0, 0, 0,0
+            15, 17, 22, 60, 30, 60, 100,0,
+            15, 17, 22, 60, 30, 60, 100,0,
+            15, 17, 22, 60, 30, 60, 100,0,
+            15, 17, 22, 60, 30, 60, 100,0,
             };
             for(i=0; i < PARTY_SIZE; i++)
             {
@@ -2360,10 +2361,12 @@ void VBlankCB_Battle(void)
     SetGpuReg(REG_OFFSET_WIN0V, gBattle_WIN0V);
     SetGpuReg(REG_OFFSET_WIN1H, gBattle_WIN1H);
     SetGpuReg(REG_OFFSET_WIN1V, gBattle_WIN1V);
+    #ifndef SKIP_GRAPHICS
     LoadOam();
     ProcessSpriteCopyRequests();
     TransferPlttBuffer();
     ScanlineEffect_InitHBlankDmaTransfer();
+    #endif
 }
 
 void SpriteCB_VsLetterDummy(struct Sprite *sprite)
