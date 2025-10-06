@@ -3595,6 +3595,21 @@ static void Cmd_checkteamslost(void)
     {
         #ifdef OBSERVED_DATA
         enemyWon = TRUE;
+        for (i = 0; i < PARTY_SIZE; i++) {
+            DumpPartyMonData(&gPlayerParty[i], monDataPlayer + i * MON_DATA_U32_SIZE);
+                if (gBattlerPartyIndexes[B_POSITION_PLAYER_LEFT] == i || 
+                    (gBattlersCount > 2 && gBattlerPartyIndexes[B_POSITION_PLAYER_RIGHT] == i)) {
+                    DumpPartyMonDataActive(&gBattleMons[B_POSITION_PLAYER_LEFT], (u8 *)gStatStageRatios, monDataPlayer + i * MON_DATA_U32_SIZE);
+                }
+            }
+
+            for (i = 0; i < PARTY_SIZE; i++) {
+                DumpPartyMonData(&gEnemyParty[i], monDataEnemy + i * MON_DATA_U32_SIZE);
+                if (gBattlerPartyIndexes[B_POSITION_OPPONENT_LEFT] == i || 
+                    (gBattlersCount > 2 && gBattlerPartyIndexes[B_POSITION_OPPONENT_RIGHT] == i)) {
+                    DumpPartyMonDataActive(&gBattleMons[B_POSITION_OPPONENT_LEFT], (u8 *)gStatStageRatios, monDataEnemy + i * MON_DATA_U32_SIZE);
+                }
+            }
         stopHandleTurnEnd = 1;
         #endif
         gBattleOutcome |= B_OUTCOME_LOST;
@@ -3614,6 +3629,22 @@ static void Cmd_checkteamslost(void)
     {
         #ifdef OBSERVED_DATA
         enemyWon = FALSE;
+        for (i = 0; i < PARTY_SIZE; i++) {
+            DumpPartyMonData(&gPlayerParty[i], monDataPlayer + i * MON_DATA_U32_SIZE);
+            if (gBattlerPartyIndexes[B_POSITION_PLAYER_LEFT] == i || 
+                (gBattlersCount > 2 && gBattlerPartyIndexes[B_POSITION_PLAYER_RIGHT] == i)) {
+                DumpPartyMonDataActive(&gBattleMons[B_POSITION_PLAYER_LEFT], (u8 *)gStatStageRatios, monDataPlayer + i * MON_DATA_U32_SIZE);
+            }
+        }
+
+        for (i = 0; i < PARTY_SIZE; i++) {
+            DumpPartyMonData(&gEnemyParty[i], monDataEnemy + i * MON_DATA_U32_SIZE);
+            if (gBattlerPartyIndexes[B_POSITION_OPPONENT_LEFT] == i || 
+                (gBattlersCount > 2 && gBattlerPartyIndexes[B_POSITION_OPPONENT_RIGHT] == i)) {
+                DumpPartyMonDataActive(&gBattleMons[B_POSITION_OPPONENT_LEFT], (u8 *)gStatStageRatios, monDataEnemy + i * MON_DATA_U32_SIZE);
+            }
+        }
+
         stopHandleTurnEnd = 1;
         #endif
         gBattleOutcome |= B_OUTCOME_WON;
