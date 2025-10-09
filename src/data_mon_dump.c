@@ -27,7 +27,7 @@ void DumpPartyMonData(struct Pokemon *mon, u32 *dst) {
     dst[13] = GetMonData(mon, MON_DATA_MAX_HP, NULL);
     dst[14] = GetMonData(mon, MON_DATA_HELD_ITEM, NULL);
     dst[15] = GetMonData(mon, MON_DATA_PP_BONUSES, NULL);
-    dst[16] = GetMonData(mon, MON_DATA_PERSONALITY, NULL);
+    dst[16] = GetMonData(mon, MON_DATA_PERSONALITY, NULL) % 25;
     dst[17] = GetMonData(mon, MON_DATA_STATUS, NULL);
 
     dst[18] = 0;// Status2
