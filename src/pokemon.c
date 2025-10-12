@@ -7228,7 +7228,7 @@ void PrintPokemonData(u16 species){
     }
     const struct SpeciesInfo *info = &gSpeciesInfo[species];
     DebugPrintf(
-        "\nspeciesName: %S\nid: %d\nbaseHP: %d\nbaseAttack: %d\nbaseDefense: %d\nbaseSpeed: %d\nbaseSpAttack: %d\nbaseSpDefense: %d\ntype0: %d\ntype1: %d\n",
+        "\nspeciesName: %S\nid: %d\nbaseHP: %d\nbaseAttack: %d\nbaseDefense: %d\nbaseSpeed: %d\nbaseSpAttack: %d\nbaseSpDefense: %d\ntype0: %d\ntype1: %d\nability0: %d\nability1: %d\n",
         gSpeciesNames[species],
         species,
         info->baseHP,
@@ -7238,7 +7238,9 @@ void PrintPokemonData(u16 species){
         info->baseSpAttack,
         info->baseSpDefense,
         info->types[0],
-        info->types[1]
+        info->types[1],
+        info->abilities[0],
+        info->abilities[1]
     );
     u32 moves[MAX_MOVES] = {0};
     int n = RetrivesAllMoves(species, moves);
