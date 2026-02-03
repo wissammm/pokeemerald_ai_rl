@@ -4458,23 +4458,24 @@ void DumpMonData(){
 void DumpLegalMoves(int gActiveBattler, u16 *dst){
     s32 i;
 
-    u8 unusableMoves = CheckMoveLimitations(gActiveBattler, 0, 0xFF);
+    u8 unusableMoves = CheckMoveLimitations((u8)gActiveBattler, 0, MOVE_LIMITATIONS_ALL);
+
     for (i = 0; i < MAX_MON_MOVES; i++) {
         u16 move = gBattleMons[gActiveBattler].moves[i];
-        
-        if (move != MOVE_NONE && gBattleMons[gActiveBattler].pp[i] > 0) {
-            if (unusableMoves & gBitTable[i]) {
-                // DebugPrintf("Move %d unusable due to limitations\n", move);
-                dst[i] = FALSE;
+        u8 pp = gBattleMons[gActiveBattler].pp[i];
+        u8 markedUnusable = (unusableMoves & gBitTable[i]) != 0;
+
+        if (move != MOVE_NONE && pp > 0) {
+            if (markedUnusable) {
+                dst[i] = 0; // FALSE
             }
             else {
-                // DebugPrintf("Move %d is legal\n", move);
-                dst[i] = TRUE;
+                dst[i] = 1; // TRUE
             }
         }
         else {
-            // DebugPrintf("Move %d illegal (no PP or doesn't exist)\n", move);
-            dst[i] = FALSE;
+            // no move or no pp
+            dst[i] = 0;
         }
     }
 }
@@ -5110,7 +5111,9 @@ static void HandleTurnActionSelectionState(void)
                 {
                     actionDoneEnemy = 0;
                 }
-                
+                // if no moves available,, choose move 0
+                actionDoneEnemy = 0;
+                actionDoneEnemy = 0;
                 stopHandleTurn = 1;
                 
                 // DebugPrintf("stopHandleTurn = %d",stopHandleTurn);

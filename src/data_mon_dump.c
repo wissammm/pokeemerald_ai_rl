@@ -2,6 +2,31 @@
 #include "data_mon_dump.h"
 #include "pokemon.h"
 
+#define STRUGGLE_MOVE 165
+#define STRUGGLE_PP 20
+
+static void HandleZeroPPMoves(u32 *dst) {
+    int i;
+    u8 hasAnyPP = FALSE;
+    
+    // Check if any move has PP
+    for (i = 0; i < MAX_MON_MOVES; i++) {
+        if (dst[20 + i*2 + 1] > 0) {
+            hasAnyPP = TRUE;
+            break;
+        }
+    }
+    
+    // If no PP for any move, set all moves to 0 and first move to Struggle
+    if (!hasAnyPP) {
+        for (i = 0; i < MAX_MON_MOVES; i++) {
+            dst[20 + i*2] = 0;
+            dst[20 + i*2 + 1] = 0;
+        }
+        dst[20] = STRUGGLE_MOVE;
+        dst[21] = STRUGGLE_PP;
+    }
+}
 
 void DumpPartyMonData(struct Pokemon *mon, u32 *dst) {
     int i;
@@ -33,11 +58,13 @@ void DumpPartyMonData(struct Pokemon *mon, u32 *dst) {
     dst[18] = 0;// Status2
     dst[19] = 0;// Status3
 
-
     for (i = 0; i < MAX_MON_MOVES; i++) {
         dst[20 + i*2] = GetMonData(mon, MON_DATA_MOVE1 + i, NULL);
         dst[20 + i*2 + 1] = GetMonData(mon, MON_DATA_PP1 + i, NULL);
     }
+    
+    // Handle case where all moves have 0 PP
+    HandleZeroPPMoves(dst);
 }
 
 void DumpPartyMonDataActive(struct BattlePokemon *mon, u8 *gStatStageRatios, u32 *dst) {
@@ -74,4 +101,7 @@ void DumpPartyMonDataActive(struct BattlePokemon *mon, u8 *gStatStageRatios, u32
         dst[20 + i*2] = mon->moves[i];
         dst[20 + i*2 + 1] = mon->pp[i];
     }
+    
+    // Handle case where all moves have 0 PP
+    HandleZeroPPMoves(dst);
 }

@@ -103,7 +103,7 @@ void SetGpuReg(u8 regOffset, u16 value)
         // All other registers (including DISPCNT) are ignored after buffering.
         return;
     }
-    #elif
+    #else
     if (regOffset < GPU_REG_BUF_SIZE)
     {
         u16 vcount;
