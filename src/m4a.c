@@ -41,6 +41,9 @@ u32 MidiKeyToFreq(struct WaveData *wav, u8 key, u8 fineAdjust)
     return umul3232H32(wav->freq, val1 + umul3232H32(val2 - val1, fineAdjustShifted));
 }
 
+#ifndef SKIP_GRAPHICS
+
+
 void UnusedDummyFunc(void)
 {
 }
@@ -1427,6 +1430,45 @@ void m4aMPlayLFOSpeedSet(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u8 lf
 
     mplayInfo->ident = ID_NUMBER;
 }
+
+#else /* SKIP_GRAPHICS */
+
+__attribute__((weak)) void m4aSoundVSync(void) { }
+__attribute__((weak)) void m4aSoundVSyncOn(void) { }
+__attribute__((weak)) void m4aSoundVSyncOff(void) { }
+
+__attribute__((weak)) void m4aSoundInit(void) { }
+__attribute__((weak)) void m4aSoundMain(void) { }
+
+__attribute__((weak)) void m4aSongNumStart(u16 n) { (void)n; }
+__attribute__((weak)) void m4aSongNumStartOrChange(u16 n) { (void)n; }
+__attribute__((weak)) void m4aSongNumStop(u16 n) { (void)n; }
+
+__attribute__((weak)) void m4aMPlayAllStop(void) { }
+__attribute__((weak)) void m4aMPlayContinue(struct MusicPlayerInfo *mplayInfo) { (void)mplayInfo; }
+__attribute__((weak)) void m4aMPlayFadeOut(struct MusicPlayerInfo *mplayInfo, u16 speed) { (void)mplayInfo; (void)speed; }
+__attribute__((weak)) void m4aMPlayFadeOutTemporarily(struct MusicPlayerInfo *mplayInfo, u16 speed) { (void)mplayInfo; (void)speed; }
+__attribute__((weak)) void m4aMPlayFadeIn(struct MusicPlayerInfo *mplayInfo, u16 speed) { (void)mplayInfo; (void)speed; }
+__attribute__((weak)) void m4aMPlayImmInit(struct MusicPlayerInfo *mplayInfo) { (void)mplayInfo; }
+/* Additional weak stubs to satisfy callers when audio is skipped */
+__attribute__((weak)) void m4aMPlayStop(struct MusicPlayerInfo *mplayInfo) { (void)mplayInfo; }
+__attribute__((weak)) void m4aMPlayPanpotControl(struct MusicPlayerInfo *mplayInfo, u16 trackBits, s8 pan) { (void)mplayInfo; (void)trackBits; (void)pan; }
+__attribute__((weak)) void m4aMPlayPitchControl(struct MusicPlayerInfo *mplayInfo, u16 trackBits, s16 pitch) { (void)mplayInfo; (void)trackBits; (void)pitch; }
+__attribute__((weak)) void m4aMPlayVolumeControl(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u16 volume) { (void)mplayInfo; (void)trackBits; (void)volume; }
+__attribute__((weak)) void m4aMPlayTempoControl(struct MusicPlayerInfo *mplayInfo, u16 tempo) { (void)mplayInfo; (void)tempo; }
+__attribute__((weak)) void m4aMPlayLFOSpeedSet(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u8 lfoSpeed) { (void)mplayInfo; (void)trackBits; (void)lfoSpeed; }
+__attribute__((weak)) void m4aMPlayModDepthSet(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u8 modDepth) { (void)mplayInfo; (void)trackBits; (void)modDepth; }
+
+/* Weak stubs for helper functions referenced by assembly m4a_1.o */
+__attribute__((weak)) void FadeOutBody(struct MusicPlayerInfo *mplayInfo) { (void)mplayInfo; }
+__attribute__((weak)) void ClearChain(void *x) { (void)x; }
+__attribute__((weak)) void Clear64byte(void *x) { (void)x; }
+__attribute__((weak)) void TrkVolPitSet(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track) { (void)mplayInfo; (void)track; }
+__attribute__((weak)) void SampleFreqSet(u32 freq) { (void)freq; }
+__attribute__((weak)) void MPlayStart(struct MusicPlayerInfo *mplayInfo, struct SongHeader *songHeader) { (void)mplayInfo; (void)songHeader; }
+
+#endif /* SKIP_GRAPHICS */
+
 
 #define MEMACC_COND_JUMP(cond) \
 if (cond)                      \

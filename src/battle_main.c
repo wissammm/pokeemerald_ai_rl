@@ -4457,6 +4457,7 @@ void DumpMonData(){
 
 void DumpLegalMoves(int gActiveBattler, u16 *dst){
     s32 i;
+    u8 hasLegalMove = FALSE;
 
     u8 unusableMoves = CheckMoveLimitations((u8)gActiveBattler, 0, MOVE_LIMITATIONS_ALL);
 
@@ -4465,18 +4466,18 @@ void DumpLegalMoves(int gActiveBattler, u16 *dst){
         u8 pp = gBattleMons[gActiveBattler].pp[i];
         u8 markedUnusable = (unusableMoves & gBitTable[i]) != 0;
 
-        if (move != MOVE_NONE && pp > 0) {
-            if (markedUnusable) {
-                dst[i] = 0; // FALSE
-            }
-            else {
-                dst[i] = 1; // TRUE
-            }
+        if (move != MOVE_NONE && pp > 0 && !markedUnusable) {
+            dst[i] = 1;
+            hasLegalMove = TRUE;
         }
         else {
-            // no move or no pp
             dst[i] = 0;
         }
+    }
+
+    // No usable move => Struggle is forced (action 0)
+    if (!hasLegalMove) {
+        dst[0] = 1;
     }
 }
 
